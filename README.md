@@ -1,1 +1,1 @@
-"# ttu-databases-2" 
+TTU Andmebaasid II Autorendi projekt

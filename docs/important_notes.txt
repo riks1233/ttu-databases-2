@@ -1,0 +1,35 @@
+ÜLESANNE 2:
+	* soovitus – enne kui hakkate mudelifailiga tööle,
+	tehke sellest koopia. Kui fail peaks riknema, siis saate koopiat kasutades
+	faili suhteliselt värske versiooni taastada. Soovitan sellise koopia teha iga
+	harjutustunni alguses ja ka iga kord kui väljapool koolitunde selle failiga
+	tööle hakkate.
+
+	* PostgreSQL andmebaasi kitsenduste nimede ühtlustamiseks
+	saate kasutada PostgreSQL andmebaasi laiendust:
+	https://github.com/katrinaibast/constr_name_unif , mida
+	kirjeldatakse selles lõputöös: https://digi.lib.ttu.ee/i/?11139
+
+	* Hoiatus! EAs on välisvõtmete muutmine väga
+	ebamugav ning välisvõtme kitsenduste kirjeldused
+	võivad väga kergesti rikneda.
+
+	* PostgreSQL või Oracle andmebaasi disaini kirjeldavad diagrammid tuleb
+	Teil lõpuks panna projekti dokumendi kolmandasse peatükki – kevadel
+	tehtud/õppejõult saadud projekti andmebaasi disaini diagrammide
+	asemele.
+	
+	
+PostgreSQL DATA TYPES:
+	NUMBERS:
+		* smallint
+		* integer
+		* bigint
+	CHARACTERS:
+		* character
+		* varchar (specified limit)
+		* text (unlimited)
+	FLOATS:
+		* real
+		* double precision (not so used, too heavy)
+		* decimal and numeric (equal things)
