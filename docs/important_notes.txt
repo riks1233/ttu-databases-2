@@ -32,19 +32,33 @@ PostgreSQL DATA TYPES:
 	FLOATS:
 		* real
 		* double precision (not so used, too heavy)
-		* decimal and numeric (equal things)
+		* decimal and numeric (equal things) [decimal(täpsus, skaala) täpsus - üldine numbrite arv, skaala - palju peale koma.]
 		
 		
-* mis on kirjeldus nt Auto_seisundi_liik korral
-* mida on vaja teha
 väljapikkused
 * eesnimi perenimi elukoht muuta
 timestamp algväärtus func muuta (no ajavöönd) Localtimestamp(0) (kp ja kell ilma ajavöönd)
 smallint IXFK
-kompenseerivad tegevused on delete 
+kompenseerivad tegevused on delete
 kui ilma argumentideta siis current_timestamp ilma suludeta
 auto tabel: isik_id -> registrerija_id (töötaja)
 real -> decimal(täpsus, skaala) täpsus - üldine numbrite arv, skaala - palju peale koma.
 
+
 decimal (3, 1)
 99,9 - õige
+
+küsida praxil üle:
+	
+*Kas on vaja seda teha:  Näiteks, kui CASE vahend pakub tabelisse Isik
+välja primaarvõtme veeru isik_id INTEGER, siis on Teie võimuses näiteks
+määrata, et primaarvõti on hoopis kombinatsioon isikukood VARCHAR(50)
+ja isikukoodi_riik CHAR(3) ning isik_id veerg kustutada
+
+*Tootaja: isik_id primary key peab olema serial või integer
+*Tootajate register relation -> Isik annab sama veateadet kui avada ja vajutada OK, kas see on norm?
+
+* Vaadata praxil üle:
+		* Kui välisvõti viitab sisulise tähendusega võtmele (klassifikaatori kood,
+		isikukood, auto registrikood, dokumendi number, üliõpilaskood, ...), siis
+		ON UPDATE CASCADE.
