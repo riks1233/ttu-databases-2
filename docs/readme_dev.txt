@@ -51,3 +51,8 @@ registreeritud.
 	◦ Kõigil ülejäänud juhtudel sobib vaikimisi määrang ON UPDATE/DELETE NO ACTION.
 * Tüüpide ümbernimetamisest veel ül2 page 25
 * Vaikimsväärtused 26 - 28
+
+
+
+ÜLESANNE 3 notes
+* EA ei kontrolli CHECK kitsenduste avaldisi

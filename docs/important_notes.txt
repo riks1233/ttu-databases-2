@@ -58,7 +58,25 @@ ja isikukoodi_riik CHAR(3) ning isik_id veerg kustutada
 *Tootaja: isik_id primary key peab olema serial või integer
 *Tootajate register relation -> Isik annab sama veateadet kui avada ja vajutada OK, kas see on norm?
 
+* Kui välisvõtme poolt realiseeritava seosetüübi korral on püstitatud
+reegel, et vanema andmete kustutamisel peavad selle laste andmed
+säilima, siis on sobiv määrang ON DELETE SET NULL.
+
 * Vaadata praxil üle:
 		* Kui välisvõti viitab sisulise tähendusega võtmele (klassifikaatori kood,
 		isikukood, auto registrikood, dokumendi number, üliõpilaskood, ...), siis
 		ON UPDATE CASCADE.
+		
+		
+smallint + check kitsendus autoaasta
+
+
+commits:
+(TDD, make folders for each iteration)
+	* test1 fail
+	* code1 + test1 ok
+	* test2 fail
+	* code2 + test2 ok
+	* test3 fail
+	* code3 + test3 ok
+
