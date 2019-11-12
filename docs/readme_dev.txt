@@ -54,3 +54,41 @@ registreeritud.
 
 ÜLESANNE 3 notes
 * EA ei kontrolli CHECK kitsenduste avaldisi
+
+* kui Teie andmebaasis on näiteks veerg hind,
+kuhu saab lisada negatiivseid väärtuseid, siis miinuspunktide eest
+ei saa kõrvale põigata väitega, et "Kontseptuaalses
+andmemudelis polnud seda piiravat kitsendust kirja pandud". See
+kitsendus peab olema seal ja peab olema Teie andmebaasis.
+* Kui veerus peab olema alati väärtus, siis selle tagamiseks tuleb
+veerule defineerida NOT NULL kitsendus. Eraldi CHECK
+kitsendust selleks vaja ei ole.
+* Ärge defineerige ühte ja sama kitsendust mitu korda
+* Ärge jõustage üksteisega vastuolus olevaid kitsendusi
+* Välisvõtme veergudes pole vaja korrata viidatud kandidaatvõtme
+veergudele jõustatud kitsendusi. Välisvõti tähendab, et selle väärtus
+peab olema üks kandidaatvõtme väärtustest.
+
+kitsendused dokumendis:
+* riik kood - lk 5
+* e-meil - lk 6
+* isikukood - lk 7
+* parool, reg_aeg - lk 10
+* reg_avaldised - lk 14
+
+kontseptuaalne andmemudel - MAIN DOCUMENT
+Registreerimine on kohustuslik == NOT NULL
+PK must be unique
+
+!!!!!!auto reg_number "ei tohi leiduda" Pole check kitsendusega realiseeritav. Siis kui tuleb ÜL4, määrata unikaalne indeks vms, küsida Erki käest
+* isik e_meil punane? ül10 kustutada veerule e-mail unique kitsenduse, ja luua unique indexi 
+<> is more correct version of !=
+
+http://apex.ttu.ee/phppgadmin/ regex kontroll (PostgreSQL -> t<matriklinumber>, parool (Mis oli Erki-le saadetud) -> random DB -> SQL tab -> remove checkmark Paginate results)
+
+* Klassifikaator nimetus - V
+
+
+* Riik kas on "pole tyhi" checki vaja, kui on chk kolmest suurtahest? -??
+
+ÜLESANNE 4
