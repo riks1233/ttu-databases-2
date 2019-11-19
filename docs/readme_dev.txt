@@ -1,4 +1,4 @@
-Teha:
+﻿Teha:
 * (ül2 page 16) Kui registreerite eesnime ja perenime, siis peaks olema kasutatud ühte
 järgnevatest lahendustest. Veenduge, et kontseptuaalses andmemudelis olev
 atribuutide kirjeldus on tehtud valikuga kooskõlas (nii atribuutide kirjelduse
@@ -128,8 +128,20 @@ check here: apex.ttu.ee/queries2 -> matrikkel -> select test -> suur nupp
 		Quick test: 12 : 30
 		Databases II (fall 2019) : 66 : 38
 		
+
 		
 KÜSIDA praxis:
-* Overlapping indexes that have the same leading column (vt repo/problemstofix/yleliigne_kustutada.png). Mida peame siin tegema? Kui peame kustutama, siis kuidas, need on ju primaarvõtmed, mis võtavad oma väärtust teisest tabelist (ehk on foreign keys)
-* kuidas kirja panna indeksite loomise kood? : ülesanne 4 lk 24 alumine punkt ja sealt edasi
-* Vaadata üleüldiselt Erki-ga need tulemused Quick Test ja Databases II 
+1 Overlapping indexes that have the same leading column (vt repo/problemstofix/yleliigne_kustutada.png). 
+Mida peame siin tegema? 
+Kui peame kustutama, siis kuidas, need on ju primaarvõtmed, mis võtavad oma väärtust teisest tabelist (ehk on foreign keys)
+
+2 kuidas kirja panna indeksite loomise kood? : ülesanne 4 lk 24 alumine punkt ja sealt edasi
+
+3 Vaadata üleüldiselt Erki-ga need tulemused Quick Test ja Databases II 
+
+Vastused:
+1. Enda poolt loodud index, üleliigsed indeksid kustutada. nt auto-kategooria, isik id töötaja tabelis.
+2. Nii nagu genereeritud, dokumendis peatükk
+3. Seq 7 - Vaikimisi väärtuste andmine
+
+2.2.1 -Osaline unikaalne indeks. postgresql partial index(google)
