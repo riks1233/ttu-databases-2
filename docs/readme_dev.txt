@@ -87,8 +87,49 @@ PK must be unique
 http://apex.ttu.ee/phppgadmin/ regex kontroll (PostgreSQL -> t<matriklinumber>, parool (Mis oli Erki-le saadetud) -> random DB -> SQL tab -> remove checkmark Paginate results)
 
 * Klassifikaator nimetus - V
-
-
 * Riik kas on "pole tyhi" checki vaja, kui on chk kolmest suurtahest? -??
 
-ÜLESANNE 4
+ÜLESANNE 4:
+
+CODE GENERATION STEPS:
+	* Genereeri kood:
+		* klikki DDL_PostgreSQL paketi peale
+		* vali Package -> Database engineering -> Generate package dll...
+		* tiki Include all child packages
+		* paiguta õigesse järjekorda (ülesanne 4 lk 8)
+		* genereeri (pigem tekita uue faili)
+	* Genereeritud failis:
+		* eemalda "
+		* faili alguses kirjuta: START TRASACTION;
+		* faili lõpus kirjuta: COMMIT;
+		* lisa fillfactor laused peale vastava tabeli CREATE lause:
+		
+			ALTER TABLE public.amet SET (FILLFACTOR=90)
+			;
+			ALTER TABLE public.isik SET (FILLFACTOR=90)
+			;
+			ALTER TABLE public.klient SET (FILLFACTOR=90)
+			;
+			ALTER TABLE public.tootaja SET (FILLFACTOR=90)
+			;
+			ALTER TABLE public.auto SET (FILLFACTOR=90)
+			;
+
+upload db: apex.ttu.ee/phppgadmin -> postgre -> oma matrikkel -> SQL -> linnuke maha -> execute
+check here: apex.ttu.ee/queries2 -> matrikkel -> select test -> suur nupp
+	Test name : errors : seconds
+	* Classroom
+		Quick test : 25 : 40
+		Databases II (fall 2019) : 71 : 50
+	* Home1
+		Quick test : 12 : 40
+		Databases II (fall 2019) : 62 : 50
+	* Home3
+		Quick test: 12 : 30
+		Databases II (fall 2019) : 66 : 38
+		
+		
+KÜSIDA praxis:
+* Overlapping indexes that have the same leading column (vt repo/problemstofix/yleliigne_kustutada.png). Mida peame siin tegema? Kui peame kustutama, siis kuidas, need on ju primaarvõtmed, mis võtavad oma väärtust teisest tabelist (ehk on foreign keys)
+* kuidas kirja panna indeksite loomise kood? : ülesanne 4 lk 24 alumine punkt ja sealt edasi
+* Vaadata üleüldiselt Erki-ga need tulemused Quick Test ja Databases II 
