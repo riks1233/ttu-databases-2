@@ -231,7 +231,7 @@ yl12 põhimõte vaadake seda mis on tehtud näiteprojektis.
 KÜSIDA:
 * vaade autode_detailid, lisatud hetke_seisund - ei vasta kontseptuaalsele andmemudelile. Kas tohib? Kas peab andmemudelit täiendama seoses sellega? Kuskohas peale Kasutusjuhti (lk 29 dokis) on vaja veel muudatusi teha?
 
-* õiguste jagamise osas, kas tuleb otseselt anda õigused tabelite jaoks?
+* õiguste jagamise osas, kas tuleb anda õigused kasutajale otseselt tabelite jaoks?
 ehk:
 	GRANT SELECT, UPDATE ON TABLE
 	Vastuvott
@@ -239,3 +239,21 @@ ehk:
 	GRANT SELECT, INSERT, UPDATE ON TABLE
 	Vastuvotuaeg
 	TO oppejoud_vastuvotud;
+* Näiteprojekti Dokumendis 4.10.3 indeksid. Kui meil on alguses peale need mittevajalikud indexid puudu (ehk alter table laused puuduvad. Kas neid on vaja??) Ja need indexid on samuti puudu Füüsilise disaini (ptk3 )joonistes
+	- alamküss, kas siin peaks reg_number index minema sekundaarsete indeksite alla (4.10.2)?
+
+* 4.19.3, kas tuleb alguses kõik foreign key'id eemaldada, või ainult need, mis on arvujada genereerimisega seotud (e serialid)?
+
+HINDAMISMUDELI KÜSIMUSED:
+* Erinevate baastabelite võtmeveergudel on samasugune nimi (näiteks "ID" või "kood") (tüüpviga 31)
+	- meil on tootaja ja klient PK'd isik_id, samuti, nagu Isik tabelil. Kas on viga?
+	
+* ON UPDATE/ON DELETE SET NULL/SET DEFAULT kasutus välisvõtme veergude puhul, mis on kohustuslikud/millel puudub vaikimisi väärtus
+	- meil on FK_Tootaja_Tootaja ON DELETE SET NULL
+	
+* Vähemalt ühes PostgreSQL päringus ei arvestata stringide ühendamisel, et üks argument võib olla NULL. Sellisel juhul on vaja tarvitada coalesce funktsiooni. Näiteks on seda vaja ees- ja perenime ühendamisel, kui üks kahest võib puududa.
+	- meil on CONCAT(Isik)... (rida 477) dokumentatsiooni järgi concat ignoreerib NULL väärtused
+* Kuidas funktsiooni argumente valideerida? (hindamismudel 65)
+* !!! Toad rakenduses on üks vaade mitte kasutatud.
+* Dokumendi järgi realiseeritav funktsionaalsus ei ole võimalik. Tuleb pgApex-is kasutada üht ja sama vaadet 2 erineva asja jaoks. Kui lisada hetkeseisund autode_detailid juurde, siis pole vaja vaadet "kõik autod"
+
