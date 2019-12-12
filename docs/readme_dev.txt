@@ -1,4 +1,4 @@
-Teha:
+﻿Teha:
 * (ül2 page 16) Kui registreerite eesnime ja perenime, siis peaks olema kasutatud ühte
 järgnevatest lahendustest. Veenduge, et kontseptuaalses andmemudelis olev
 atribuutide kirjeldus on tehtud valikuga kooskõlas (nii atribuutide kirjelduse
