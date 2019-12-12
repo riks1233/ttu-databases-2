@@ -104,16 +104,27 @@ CODE GENERATION STEPS:
 		* faili lõpus kirjuta: COMMIT;
 		* lisa fillfactor laused peale vastava tabeli CREATE lause:
 		
-			ALTER TABLE public.amet SET (FILLFACTOR=90)
-			;
-			ALTER TABLE public.isik SET (FILLFACTOR=90)
-			;
-			ALTER TABLE public.klient SET (FILLFACTOR=90)
-			;
-			ALTER TABLE public.tootaja SET (FILLFACTOR=90)
-			;
-			ALTER TABLE public.auto SET (FILLFACTOR=90)
-			;
+			esimene meetod:
+ALTER TABLE public.amet SET (FILLFACTOR=90)
+;
+ALTER TABLE public.isik SET (FILLFACTOR=90)
+;
+ALTER TABLE public.klient SET (FILLFACTOR=90)
+;
+ALTER TABLE public.tootaja SET (FILLFACTOR=90)
+;
+ALTER TABLE public.auto SET (FILLFACTOR=90)
+;
+			teine meetod:
+CREATE TABLE Ruum (
+...
+) WITH (fillfactor=90);
+
+		* lisa unique indexid Auto ja Isiku tabelite loomise alla:
+CREATE UNIQUE INDEX AK_Isik_e_meil_tostutundetud ON Isik (Lower(e_meil))
+;
+CREATE UNIQUE INDEX AK_Auto_reg_number_aktiivne ON Auto (reg_number) WHERE auto_seisundi_liik_kood = 2
+;
 
 upload db: apex.ttu.ee/phppgadmin -> postgre -> oma matrikkel -> SQL -> linnuke maha -> execute
 check here: apex.ttu.ee/queries2 -> matrikkel -> select test -> suur nupp
@@ -127,9 +138,104 @@ check here: apex.ttu.ee/queries2 -> matrikkel -> select test -> suur nupp
 	* Home3
 		Quick test: 12 : 30
 		Databases II (fall 2019) : 66 : 38
+	* Home4 (yl4 parandused sisse viidud)
+		Quick test: 10 : 10
+		Databases II (fall 2019) : 74 : 18
+
+MS ACCESS
+
+yl9 - http://apex.ttu.ee/pgapex2/public/index.php/app/8/22 lucile.burgess@frolix.net laborum 
+query: create -> Query design -> close -> pass through -> property sheet -> odbc määrata (kolm punkti) -> korras
+
+PGADMIN LOCAL PROGRAM
+	* how to add remote apex server with local pgadmin:
+		* name: PostgreSQL
+		* host: apex.ttu.ee
+		* port: 5432
+		* db: t192406
+		* use SSH and all of the settings there
+	* how to backup:
+		* right click on db -> Backup...
+		* Format: Plain
+		* Encoding UTF8
+		* Dump options:
+			* Deselect:
+				* Blobs
+			* Select:
+				* Use column inserts
+				* Use insert commands
+		* Execute
+		* Replace "public." with ""
+		* Find your INSERT statements
+				
+remote backup (puuduvad insert laused):
+pg_dump -C -f t192406_kuupaev.sql t192406
+
+AUTO seisundid:
+1 - ootel
+2 - aktiivne
+3 - mitteaktiivne
+4 - lõpetatud
+
+ÜL6 notes:
+	important stuff pages:
+		* 6, näited
+		* 10, alter domain, add constraints
 		
-		
-KÜSIDA praxis:
-* Overlapping indexes that have the same leading column (vt repo/problemstofix/yleliigne_kustutada.png). Mida peame siin tegema? Kui peame kustutama, siis kuidas, need on ju primaarvõtmed, mis võtavad oma väärtust teisest tabelist (ehk on foreign keys)
-* kuidas kirja panna indeksite loomise kood? : ülesanne 4 lk 24 alumine punkt ja sealt edasi
-* Vaadata üleüldiselt Erki-ga need tulemused Quick Test ja Databases II 
+ÜL7 notes, vaated:
+vaja commentida
+vaja luua väh 3 vaadet
+vaja kasutada virtuaalsete andmete kihi
+lk 10 kuidas luua
+
+create view what to replace if taking select clauses from ms access prototype db Queries section:
+check that query names are not the same (table names are cut off on execution)
+auto.isik_id -> registreerija_id
+auto_kytuse_liik.kytuse_liik_id -> auto_kytuse_liik_kood
+auto.auto_kytuse_liik -> auto_kytuse_liik_kood
+auto.auto_seisundi_liik -> auto_seisundi_liik_kood
+valjalaskeaasta -> valjalaske_aasta
+
+ÜL8 notes
+* vähemalt kolm
+funktsiooni/protseduuri (rutiini), mis pole seotud trigeriga.
+* Töövihiku järgi projekti tegijad peavad juhataja töökoha jaoks realiseerima
+ainult ühe seisundimuudatuse protseduuri/funktsiooni.
+* funktsiooni muutuja algab "p_"-ga
+
+ÜL10 notes, triggers:
+* vähemalt 2
+* lähtuda projekti töövihikust "registri põhiobjekti seisundidiagramm"
+peameeles:
+	* Rakenduse võimaldatavad seisundimuudatused ei lange üks-ühele kokku projektis ettenähtuga
+	* Rakendus lubab teha seisundimuudatusi, mida projekt ette ei näe.
+page 3: juhul kui lihtne (ülimalt 2 seisundit), teha veel, konsulteerida Erki-ga
+
+* Järgnevalt esitan veel ühe trigerite idee. X andmete hulgas on selliseid,
+mida peale X eksemplari registreerimist ei peaks saama muuta. Mõtlen siin
+andmeid, kes oli X eksemplari registreerija ning milline oli registreerimise
+aeg. Tabeli X veergudele reg_aeg ja registreerija_id (võibolla on Teie tabelis
+teistusugune nimi) saab luua BEFORE UPDATE reataseme trigeri, mis
+andmete muutmisel nendes veergudes asendab uue väärtuse automaatsel
+vana väärtusega (nt NEW.reg_aeg:=OLD.reg_aeg).
+
+Ootel => Aktiivne
+Aktiivne => Mitteaktiivne
+Aktiivne => Lõpetatud
+Mitteaktiivne => Aktiivne
+Mitteaktiivne => Lõpetatud
+
+TEHA:
+yl12 põhimõte vaadake seda mis on tehtud näiteprojektis.
+
+KÜSIDA:
+* vaade autode_detailid, lisatud hetke_seisund - ei vasta kontseptuaalsele andmemudelile. Kas tohib? Kas peab andmemudelit täiendama seoses sellega? Kuskohas peale Kasutusjuhti (lk 29 dokis) on vaja veel muudatusi teha?
+
+* õiguste jagamise osas, kas tuleb otseselt anda õigused tabelite jaoks?
+ehk:
+	GRANT SELECT, UPDATE ON TABLE
+	Vastuvott
+	TO oppejoud_vastuvotud;
+	GRANT SELECT, INSERT, UPDATE ON TABLE
+	Vastuvotuaeg
+	TO oppejoud_vastuvotud;

@@ -1,0 +1,16 @@
+* (yl_7, vaated)
+Hindamismudel ootab, et Teie loodav
+andmebaasirakendus kasutaks andmebaasi läbi virtuaalse andmete kihi (st kui
+rakendus teeb päringuid otse baastabelite põhjal, siis kaotate punkte)
+Ehk Mel, baastabeleid ei kasuta, kasutad vaated, funktsioonid. Kui on vajalik asi puudu, siis küsi mind äkki oskan suunata (ära kasuta baastabelid :D)
+	Vaade on tabel (virtuaalne tabel)
+	
+* (yl_8, rutiinid ehk funktsioonid ehk protseduurid) Rakenduses tuleb ikkagi realiseerida üks töökoht.
+
+* (yl_9, kus ja kuidas rakendust luua)
+	meile - page 4, Veebirakendus, pgApex2. Arvan, et esitatud seal bakatöö lingi pealt saab kogu info pgApex2 kasutamise kohta
+
+* (yl_10, kasutaja login)
+	Realiseerime 2. meetodi järgi? (meetodid kirjeldatud yl_10 dokumendi 3. lehel)
+	
+* (yl12, rakenduse kohta page 16 (osa 8))
