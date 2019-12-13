@@ -461,7 +461,8 @@ SELECT Auto.auto_kood, Auto.nimetus AS auto_nimetus, Auto_seisundi_liik.nimetus 
 FROM Auto
 INNER JOIN Auto_mark ON Auto_mark.auto_mark_kood = Auto.auto_mark_kood
 INNER JOIN Auto_seisundi_liik ON Auto_seisundi_liik.auto_seisundi_liik_kood = Auto.auto_seisundi_liik_kood
-WHERE (((Auto_seisundi_liik.auto_seisundi_liik_kood) IN (2,3)));
+WHERE ((Auto.auto_seisundi_liik_kood) IN (2,3))
+ORDER BY hetke_seisund, Auto.auto_kood;
 
 COMMENT ON VIEW Aktiivsed_ja_mitteaktiivsed_autod IS 'Vaade, mis kuvab aktiivsete või mitteaktiivsete autode nimekirja, kus on kood, nimetus, hetkeseisundi nimetus, mark, mudel, valjalaske_aasta, reg_number, vin_kood. Vaade on mõeldud kasutamiseks juhatajale, kes soovib auto kasutamist lõpetada. Vaade realiseerib operatsiooni OP9.1.';
 
@@ -469,7 +470,8 @@ CREATE OR REPLACE VIEW Autode_kategooriate_omamine WITH (security_barrier) AS
 SELECT Auto_kategooria_omamine.auto_kood, CONCAT(Auto_kategooria.nimetus, ' (', Auto_kategooria_tyyp.nimetus, ')') AS kategooria
 FROM Auto_kategooria_omamine
 INNER JOIN Auto_kategooria ON Auto_kategooria_omamine.auto_kategooria_kood = Auto_kategooria.auto_kategooria_kood
-INNER JOIN Auto_kategooria_tyyp ON Auto_kategooria.auto_kategooria_tyyp_kood = Auto_kategooria_tyyp.auto_kategooria_tyyp_kood;
+INNER JOIN Auto_kategooria_tyyp ON Auto_kategooria.auto_kategooria_tyyp_kood = Auto_kategooria_tyyp.auto_kategooria_tyyp_kood
+ORDER BY kategooria;
 
 COMMENT ON VIEW Autode_kategooriate_omamine IS 'Vaade, mis kuvab autode kategooriate ja kategooriate tüüpide nimetused (auto_kood, kategooria_nimetus(kategooria_tyyp_nimetus)). Vaade on mõeldud kasutamiseks juhatajale või autode haldurile, kes tahab mingil põhjusel vaadata autode detailseid andmeid. Vaade realiseerib operatsiooni OP2.2.';
 
@@ -479,7 +481,8 @@ FROM Auto
 INNER JOIN Auto_mark ON Auto_mark.auto_mark_kood = Auto.auto_mark_kood
 INNER JOIN Auto_kytuse_liik ON Auto_kytuse_liik.auto_kytuse_liik_kood = Auto.auto_kytuse_liik_kood
 INNER JOIN Auto_seisundi_liik ON Auto_seisundi_liik.auto_seisundi_liik_kood = Auto.auto_seisundi_liik_kood
-INNER JOIN Isik ON Isik.isik_id = Auto.registreerija_id;
+INNER JOIN Isik ON Isik.isik_id = Auto.registreerija_id
+ORDER BY Auto.auto_kood;
 
 COMMENT ON VIEW Autode_detailid IS 'Vaade, mis kuvab vaatamiseks mõeldud väljades auto põhiandmed (auto_kood, nimetus, mark, mudel, valjalaske_aasta, mootori_maht, auto_kütuse_liik, istekohtade_arv, reg_number, vin_kood, registreerimise aeg, registreerinud töötaja eesnimi, perenimi ja e-meili aadress, hetke_seisund). Vaade on mõeldud kasutamiseks juhatajale või autode haldurile, kes tahab mingil põhjusel vaadata autode detailseid andmeid. Kasutatakse ka kõikide autode nimekirja kuvamiseks. Vaade realiseerib operatsioone OP8.1 ja OP8.2.';
 
@@ -488,7 +491,7 @@ SELECT Auto_seisundi_liik.auto_seisundi_liik_kood, UPPER(Auto_seisundi_liik.nime
 FROM Auto_seisundi_liik
 LEFT JOIN Auto ON Auto_seisundi_liik.auto_seisundi_liik_kood = Auto.auto_seisundi_liik_kood
 GROUP BY Auto_seisundi_liik.auto_seisundi_liik_kood, auto_seisundi_liik_nimetus
-ORDER BY Count(Auto.auto_kood) DESC , auto_seisundi_liik_nimetus;
+ORDER BY autode_arv_seisundis DESC , auto_seisundi_liik_nimetus;
 
 COMMENT ON VIEW Autode_koondaruanne IS 'Vaade, mis kuvab iga auto elutsükli seisundi kohta selle seisundi koodi, nimetuse (suurtähtedega) ja hetkel selles seisundis olevate autode arvu. Vaade on mõeldud kasutamiseks juhatajale, kes soovib sisendit juhtimisotsuste tegemiseks. Vaade realiseerib operatsiooni OP10.1.';
 
@@ -829,3 +832,56 @@ f_autendi_juhataja(p_e_meil text, p_parool text)
 TO t192406_autorendi_juhataja;
 
 
+SELECT * FROM aktiivsed_ja_mitteaktiivsed_autod;
+SELECT * FROM Autode_detailid;
+
+
+
+-- 9 POLE SELGITATUD NÄITEPROEKTIS
+t192406=# ANALYZE;
+ANALYZE
+t192406=# EXPLAIN SELECT * FROM Aktiivsed_ja_mitteaktiivsed_autod;
+                                           QUERY PLAN
+------------------------------------------------------------------------------------------------
+1 Sort  (cost=3.50..3.51 rows=7 width=61)
+2  Sort Key: auto_seisundi_liik.nimetus, auto.auto_kood
+3  -> Hash Join  (cost=2.18..3.40 rows=7 width=61)
+4       Hash Cond: (auto.auto_seisundi_liik_kood = auto_seisundi_liik.auto_seisundi_liik_kood)
+5       -> Hash Join  (cost=1.09..2.27 rows=7 width=53)
+6            Hash Cond: (auto.auto_mark_kood = auto_mark.auto_mark_kood)
+7            -> Seq Scan on auto  (cost=0.00..1.14 rows=7 width=48)
+8                 Filter: (auto_seisundi_liik_kood = ANY ('{2,3}'::integer[]))
+9            -> Hash  (cost=1.04..1.04 rows=4 width=9)
+10                -> Seq Scan on auto_mark  (cost=0.00..1.04 rows=4 width=9)
+11      -> Hash  (cost=1.04..1.04 rows=4 width=12)
+12           -> Seq Scan on auto_seisundi_liik  (cost=0.00..1.04 rows=4 width=12)
+(12 rows)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Hash Join  (cost=2.17..3.38 rows=6 width=61)
+   Hash Cond: (auto.auto_mark_kood = auto_mark.auto_mark_kood)
+   ->  Hash Join  (cost=1.07..2.25 rows=6 width=56)
+         Hash Cond: (auto.auto_seisundi_liik_kood = auto_seisundi_liik.auto_seisundi_liik_kood)
+         ->  Seq Scan on auto  (cost=0.00..1.11 rows=11 width=48)
+         ->  Hash  (cost=1.05..1.05 rows=2 width=12)
+               ->  Seq Scan on auto_seisundi_liik  (cost=0.00..1.05 rows=2 width=12)
+                     Filter: (auto_seisundi_liik_kood = ANY ('{2,3}'::integer[]))
+   ->  Hash  (cost=1.04..1.04 rows=4 width=9)
+         ->  Seq Scan on auto_mark  (cost=0.00..1.04 rows=4 width=9)
+(10 rows)
