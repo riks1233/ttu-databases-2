@@ -606,18 +606,18 @@ RETURNS boolean AS $$
 DECLARE
 rslt boolean;
 BEGIN
-	SELECT INTO rslt (parool = public.crypt(p_parool, parool))
-	FROM Isik
-	INNER JOIN Tootaja ON Isik.isik_id = Tootaja.isik_id
-	WHERE
-		Lower(Isik.e_meil)=Lower(p_e_meil) AND
-		Isik.isiku_seisundi_liik_kood = 1 AND Tootaja.amet_kood=1 AND 
-		Tootaja.tootaja_seisundi_liik_kood IN (1, 2, 3, 6);
-	RETURN coalesce(rslt, FALSE);
+SELECT INTO rslt (parool = public.crypt(p_parool, parool))
+FROM Isik
+INNER JOIN Tootaja ON Isik.isik_id = Tootaja.isik_id
+WHERE
+Lower(Isik.e_meil)=Lower(p_e_meil) AND
+Isik.isiku_seisundi_liik_kood = 1 AND Tootaja.amet_kood=1 AND 
+Tootaja.tootaja_seisundi_liik_kood IN (1, 2, 3, 6);
+RETURN coalesce(rslt, FALSE);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE
 SET search_path = public, pg_temp;
-COMMENT ON FUNCTION f_autendi_juhataja(p_e_meil text, p_parool text) IS 'Selle funktsiooni abil autenditakse juhataja. Parameetri p_e_meil oodatav väärtus on tõstutundetu kasutajanimi (e-meil) ja p_parool oodatav väärtus on tõstutundlik avatekstiline parool. Juhatajal on õigus süsteemi siseneda vaid siis, kui tema seisundiks on tööl, puhkusel, haiguslehel või katseajal.';
+COMMENT ON FUNCTION f_autendi_juhataja(p_e_meil text, p_parool text) IS 'Selle funktsiooni abil autenditakse juhataja. Parameetri p_e_meil oodatav väärtus on tõstutundetu kasutajanimi (e-meil) ja p_parool oodatav väärtus on tõstutundlik avatekstiline parool. Juhatajal on õigus süsteemi siseneda vaid siis, kui tema seisundiks on "Tööl", "Puhkusel", "Haiguslehel" või "Katseajal".';
 
 -- Kontroll
 SELECT f_autendi_juhataja(p_e_meil:='cole.nichols@ezent.biz',p_parool:='dolore');
