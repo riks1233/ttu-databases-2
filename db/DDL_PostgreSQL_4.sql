@@ -290,11 +290,11 @@ INSERT INTO public.tootaja (isik_id, amet_kood, tootaja_seisundi_liik_kood, ment
 INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (14, 'Phaeton1', 'Phaeton', 2011, '121YYY', 5, 3.0, 'WVWZZZ3CZEE075353', '2019-12-05 22:25:11', 7, 2, 1, 1);
 INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (15, 'Passat1', 'Passat', 2014, '955TTR', 5, 2.0, 'WVWZZZ3CZEE075372', '2019-12-05 22:27:25', 7, 2, 4, 1);
 INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (16, 'Passat2', 'Passat', 2014, '777HHG', 5, 1.6, 'WVWZZZ3CZEE075354', '2019-12-05 22:30:08', 7, 2, 4, 1);
-INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (17, 'Passat3', 'Passat', 2014, '879TRY', 5, 1.4, 'WVWZZZ3CZEE116550', '2019-12-05 22:35:45', 7, 1, 1, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (17, 'Passat3', 'Passat', 2014, '879TRY', 5, 1.4, 'WVWZZZ3CZEE116550', '2019-12-05 22:35:45', 7, 1, 3, 1);
 INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (18, 'Touareg1', 'Touareg', 2010, '669UHJ', 5, 3.0, 'WVGZZZ7PZCD026979', '2019-12-05 22:38:51', 12, 2, 2, 1);
-INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (100, 'Astra1', 'Astra', 2012, '666ABV', 5, 1.6, 'W0L0AHL69CG047752', '2019-12-05 22:40:13', 11, 1, 1, 2);
-INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (200, 'Tesla1', 'Model S', 2015, 'TES001', 5, 0.0, '5YJSA3H16EFP29293', '2019-12-05 22:42:51', 7, 5, 1, 3);
-INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (11, 'Golf1', 'Golf', 2013, '123ABC', 5, 1.4, 'WVWZZZAUZGP120820', '2019-12-05 22:42:51', 7, 1, 1, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (100, 'Astra1', 'Astra', 2012, '666ABV', 5, 1.6, 'W0L0AHL69CG047752', '2019-12-05 22:40:13', 11, 1, 2, 2);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (200, 'Tesla1', 'Model S', 2015, 'TES001', 5, 0.0, '5YJSA3H16EFP29293', '2019-12-05 22:42:51', 7, 5, 2, 3);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (11, 'Golf1', 'Golf', 2013, '123ABC', 5, 1.4, 'WVWZZZAUZGP120820', '2019-12-05 22:42:51', 7, 1, 3, 1);
 INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (300, 'Leaf1', 'Leaf', 2014, '849GJR', 5, 0.0, 'SJNFAAZE0U6014007', '2019-12-05 22:54:07', 11, 5, 1, 4);
 INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (12, 'Golf2', 'Golf', 2016, '223BBC', 5, 1.4, 'WVWZZZAUZGP120828', '2019-12-05 22:21:51', 7, 1, 2, 1);
 INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (13, 'Golf3', 'Golf', 2013, '332XXA', 5, 1.6, 'WVWZZZ1KZDM649841', '2019-12-05 22:23:44', 7, 2, 3, 1);
@@ -452,12 +452,12 @@ DROP VIEW IF EXISTS Aktiivsed_ja_mitteaktiivsed_autod CASCADE;
 DROP VIEW IF EXISTS Autode_kategooriate_omamine CASCADE;
 DROP VIEW IF EXISTS Autode_detailid CASCADE;
 DROP VIEW IF EXISTS Autode_koondaruanne CASCADE;
-DROP VIEW IF EXISTS Koik_autod CASCADE;
+--DROP VIEW IF EXISTS Koik_autod CASCADE;
 
 
 
 CREATE OR REPLACE VIEW Aktiivsed_ja_mitteaktiivsed_autod WITH (security_barrier) AS
-SELECT Auto.auto_kood, Auto.nimetus AS auto_nimetus, Auto_seisundi_liik.nimetus AS seisund, Auto_mark.nimetus AS mark, Auto.mudel, Auto.valjalaske_aasta, Auto.reg_number, Auto.vin_kood
+SELECT Auto.auto_kood, Auto.nimetus AS auto_nimetus, Auto_seisundi_liik.nimetus AS hetke_seisund, Auto_mark.nimetus AS mark, Auto.mudel, Auto.valjalaske_aasta, Auto.reg_number, Auto.vin_kood
 FROM Auto
 INNER JOIN Auto_mark ON Auto_mark.auto_mark_kood = Auto.auto_mark_kood
 INNER JOIN Auto_seisundi_liik ON Auto_seisundi_liik.auto_seisundi_liik_kood = Auto.auto_seisundi_liik_kood
@@ -473,7 +473,6 @@ INNER JOIN Auto_kategooria_tyyp ON Auto_kategooria.auto_kategooria_tyyp_kood = A
 
 COMMENT ON VIEW Autode_kategooriate_omamine IS 'Vaade, mis kuvab autode kategooriate ja kategooriate tüüpide nimetused (auto_kood, kategooria_nimetus(kategooria_tyyp_nimetus)). Vaade on mõeldud kasutamiseks juhatajale või autode haldurile, kes tahab mingil põhjusel vaadata autode detailseid andmeid. Vaade realiseerib operatsiooni OP2.2.';
 
-!!!!!
 CREATE OR REPLACE VIEW Autode_detailid WITH (security_barrier) AS
 SELECT Auto.auto_kood, Auto.nimetus AS auto_nimetus, Auto_mark.nimetus AS mark, Auto.mudel, Auto.valjalaske_aasta, Auto.mootori_maht, Auto_kytuse_liik.nimetus AS kytuse_liik, Auto.istekohtade_arv, Auto.reg_number, Auto.vin_kood, Auto.reg_aeg, CONCAT_WS(' ' ,Isik.eesnimi, Isik.perenimi, Isik.e_meil) AS registreerija, Auto_seisundi_liik.nimetus AS hetke_seisund
 FROM Auto
@@ -482,9 +481,8 @@ INNER JOIN Auto_kytuse_liik ON Auto_kytuse_liik.auto_kytuse_liik_kood = Auto.aut
 INNER JOIN Auto_seisundi_liik ON Auto_seisundi_liik.auto_seisundi_liik_kood = Auto.auto_seisundi_liik_kood
 INNER JOIN Isik ON Isik.isik_id = Auto.registreerija_id;
 
-COMMENT ON VIEW Autode_detailid IS 'Vaade, mis kuvab vaatamiseks mõeldud väljades auto põhiandmed (auto_kood, nimetus, mark, mudel, valjalaske_aasta, mootori_maht, auto_kütuse_liik, istekohtade_arv, reg_number, vin_kood, registreerimise aeg, registreerinud töötaja eesnimi, perenimi ja e-meili aadress, auto_hetke_seisund). Vaade on mõeldud kasutamiseks juhatajale või autode haldurile, kes tahab mingil põhjusel vaadata autode detailseid andmeid. Vaade realiseerib operatsiooni OP8.2.';
+COMMENT ON VIEW Autode_detailid IS 'Vaade, mis kuvab vaatamiseks mõeldud väljades auto põhiandmed (auto_kood, nimetus, mark, mudel, valjalaske_aasta, mootori_maht, auto_kütuse_liik, istekohtade_arv, reg_number, vin_kood, registreerimise aeg, registreerinud töötaja eesnimi, perenimi ja e-meili aadress, hetke_seisund). Vaade on mõeldud kasutamiseks juhatajale või autode haldurile, kes tahab mingil põhjusel vaadata autode detailseid andmeid. Kasutatakse ka kõikide autode nimekirja kuvamiseks. Vaade realiseerib operatsioone OP8.1 ja OP8.2.';
 
-!!!!!
 CREATE OR REPLACE VIEW Autode_koondaruanne WITH (security_barrier) AS
 SELECT Auto_seisundi_liik.auto_seisundi_liik_kood, UPPER(Auto_seisundi_liik.nimetus) AS auto_seisundi_liik_nimetus, Count(Auto.auto_kood) AS autode_arv_seisundis
 FROM Auto_seisundi_liik
@@ -494,13 +492,15 @@ ORDER BY Count(Auto.auto_kood) DESC , auto_seisundi_liik_nimetus;
 
 COMMENT ON VIEW Autode_koondaruanne IS 'Vaade, mis kuvab iga auto elutsükli seisundi kohta selle seisundi koodi, nimetuse (suurtähtedega) ja hetkel selles seisundis olevate autode arvu. Vaade on mõeldud kasutamiseks juhatajale, kes soovib sisendit juhtimisotsuste tegemiseks. Vaade realiseerib operatsiooni OP10.1.';
 
+/*
 CREATE OR REPLACE VIEW Koik_autod WITH (security_barrier) AS
-SELECT Auto.auto_kood, Auto.nimetus AS auto_nimetus, Auto_seisundi_liik.nimetus AS seisund, Auto_mark.nimetus AS mark, Auto.mudel, Auto.valjalaske_aasta, Auto.reg_number, Auto.vin_kood
+SELECT Auto.auto_kood, Auto.nimetus AS auto_nimetus, Auto_seisundi_liik.nimetus AS hetke_seisund, Auto_mark.nimetus AS mark, Auto.mudel, Auto.valjalaske_aasta, Auto.reg_number, Auto.vin_kood
 FROM Auto
 INNER JOIN Auto_mark ON Auto_mark.auto_mark_kood = Auto.auto_mark_kood
 INNER JOIN Auto_seisundi_liik ON Auto_seisundi_liik.auto_seisundi_liik_kood = Auto.auto_seisundi_liik_kood;
 
 COMMENT ON VIEW Koik_autod IS 'Vaade, mis kuvab kõigi autode nimekirja, kus on kood, nimetus, hetkeseisundi nimetus, mark, mudel, valjalaske_aasta, reg_number, vin_kood. Vaade on mõeldud kasutamiseks juhatajale või autode haldurile, kes tahab mingil põhjusel vaadata autode detailseid andmeid. Vaade realiseerib operatsiooni OP8.1.';
+*/
 
 /* Rutiinid:
 
@@ -566,17 +566,23 @@ WHERE auto_kood=12;
 
 CREATE OR REPLACE FUNCTION f_lopeta_auto
 (p_auto_kood Auto.auto_kood%TYPE)
+RETURNS Auto.auto_kood%TYPE AS $$
+UPDATE Auto SET auto_seisundi_liik_kood=4 WHERE
+auto_kood=p_auto_kood AND auto_seisundi_liik_kood IN (2,3)
+RETURNING auto_kood;
+$$ LANGUAGE SQL SECURITY DEFINER
+SET search_path=public, pg_temp;
+COMMENT ON FUNCTION f_lopeta_auto(p_auto_kood Auto.auto_kood%TYPE) IS 'Selle funktsiooni abil lõpetatakse autot, mis on seisundis "Aktiivne" või "Mitteaktiivne". Parameetri p_auto_kood oodatav väärtus on aktiveeritava auto kood. Funktsioon realiseerib operatsiooni OP5.';
+/* old function, which tagastab TRUE või FALSE, mis ei tööta pgApex-iga (lõpetab ainult üks auto ja koguaeg ütleb lõpetamine ebaõnnestus)*/
+/*
 RETURNS BOOLEAN AS $$
 	WITH muudatus AS
 	(UPDATE Auto SET auto_seisundi_liik_kood=4
 	WHERE
 		auto_kood=p_auto_kood AND
 		(auto_seisundi_liik_kood=2 OR auto_seisundi_liik_kood=3) RETURNING auto_kood)
-	SELECT Count(*)>0 AS tulemus FROM muudatus;
-$$ LANGUAGE SQL SECURITY DEFINER
-SET search_path=public, pg_temp;
-COMMENT ON FUNCTION f_lopeta_auto(p_auto_kood Auto.auto_kood%TYPE) IS 'Selle funktsiooni abil lõpetatakse autot, mis on seisundis "Aktiivne" või "Mitteaktiivne". Parameetri p_auto_kood oodatav väärtus on aktiveeritava auto kood. Funktsioon realiseerib operatsiooni OP5.';
-
+	SELECT Count(*)>0 AS tulemus FROM muudatus; */
+	
 -- Kontroll
 SELECT f_lopeta_auto(p_auto_kood:=12);
 
@@ -700,45 +706,45 @@ tgf_auto_u() FROM PUBLIC;
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC;
 
 /* User creation and Usage privileges grant clauses */
-CREATE USER t192406_Autorendi_juhataja WITH PASSWORD 'liimatainen';
+CREATE USER t192406_autorendi_juhataja WITH PASSWORD 'liimatainen';
 
-GRANT CONNECT ON DATABASE t192406 TO t192406_Autorendi_juhataja;
+GRANT CONNECT ON DATABASE t192406 TO t192406_autorendi_juhataja; --!!! vahetada
 
-GRANT USAGE ON SCHEMA public TO t192406_Autorendi_juhataja;
+GRANT USAGE ON SCHEMA public TO t192406_autorendi_juhataja;
 
 GRANT EXECUTE ON FUNCTION
 f_lopeta_auto(p_auto_kood Auto.auto_kood%TYPE),
 f_autendi_juhataja(p_e_meil text, p_parool text)
-TO t192406_Autorendi_juhataja;
+TO t192406_autorendi_juhataja;
 
 GRANT SELECT ON
 Aktiivsed_ja_mitteaktiivsed_autod,
 Autode_kategooriate_omamine,
 Autode_detailid,
-Autode_koondaruanne,
-Koik_autod
-TO t192406_Autorendi_juhataja;
+--Koik_autod,
+Autode_koondaruanne
+TO t192406_autorendi_juhataja;
 
 ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 
 /* ÕIGUSTE ÄRAVÕTMINE */
 
-REVOKE CONNECT ON DATABASE t192406 FROM t192406_Autorendi_juhataja;
+REVOKE CONNECT ON DATABASE t192406 FROM t192406_autorendi_juhataja;
 
-REVOKE USAGE ON SCHEMA public FROM t192406_Autorendi_juhataja;
+REVOKE USAGE ON SCHEMA public FROM t192406_autorendi_juhataja;
 
 REVOKE EXECUTE ON FUNCTION
 f_lopeta_auto(p_auto_kood Auto.auto_kood%TYPE),
 f_autendi_juhataja(p_e_meil text, p_parool text)
-FROM t192406_Autorendi_juhataja;
+FROM t192406_autorendi_juhataja;
 
 REVOKE SELECT ON
 Aktiivsed_ja_mitteaktiivsed_autod,
 Autode_kategooriate_omamine,
 Autode_detailid,
-Autode_koondaruanne,
-Koik_autod
-FROM t192406_Autorendi_juhataja;
+--Koik_autod,
+Autode_koondaruanne
+FROM t192406_autorendi_juhataja;
 
 
 /* tabelite ja arvujada generaatorite kustutamine */
@@ -789,7 +795,7 @@ DROP FUNCTION IF EXISTS TGF_auto_u() CASCADE;
 
 /* drop user */
 
-DROP USER IF EXISTS t192406_Autorendi_juhataja;
+DROP USER IF EXISTS t192406_autorendi_juhataja;
 
 /* drop extensions */
 
@@ -798,4 +804,28 @@ DROP EXTENSION IF EXISTS postgres_fdw CASCADE;
 
 
 COMMIT;
+
+ALTER TABLE Auto DISABLE TRIGGER TG_auto_u;
+
+UPDATE Auto
+SET auto_seisundi_liik_kood = 2
+WHERE auto_kood = 12 OR
+auto_kood = 13 OR
+auto_kood = 100 OR
+auto_kood = 200 OR
+auto_kood = 18;
+
+UPDATE Auto
+SET auto_seisundi_liik_kood = 3
+WHERE auto_kood = 11 OR auto_kood = 17;
+
+
+DROP FUNCTION IF EXISTS f_lopeta_auto(p_auto_kood Auto.auto_kood%TYPE) CASCADE;
+
+
+GRANT EXECUTE ON FUNCTION
+f_lopeta_auto(p_auto_kood Auto.auto_kood%TYPE),
+f_autendi_juhataja(p_e_meil text, p_parool text)
+TO t192406_autorendi_juhataja;
+
 
