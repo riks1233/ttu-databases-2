@@ -1,0 +1,1511 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 12.1
+-- Dumped by pg_dump version 12.0
+
+-- Started on 2019-12-08 17:49:23
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 2 (class 3079 OID 421414)
+-- Name: postgres_fdw; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS postgres_fdw WITH SCHEMA public;
+
+
+--
+-- TOC entry 3290 (class 0 OID 0)
+-- Dependencies: 2
+-- Name: EXTENSION postgres_fdw; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION postgres_fdw IS 'foreign-data wrapper for remote PostgreSQL servers';
+
+
+--
+-- TOC entry 716 (class 1247 OID 424300)
+-- Name: d_nimetus; Type: DOMAIN; Schema: public; Owner: t192406
+--
+
+CREATE DOMAIN public.d_nimetus AS character varying(50) NOT NULL
+	CONSTRAINT chk_nimetus_pole_tyhi CHECK (((VALUE)::text !~ '^[[:space:]]*$'::text));
+
+
+ALTER DOMAIN public.d_nimetus OWNER TO t192406;
+
+--
+-- TOC entry 704 (class 1247 OID 424487)
+-- Name: d_reg_aeg; Type: DOMAIN; Schema: public; Owner: t192406
+--
+
+CREATE DOMAIN public.d_reg_aeg AS timestamp without time zone NOT NULL DEFAULT LOCALTIMESTAMP(0)
+	CONSTRAINT chk_reg_aeg_on_vahemikus CHECK (((VALUE >= '2010-01-01 00:00:00'::timestamp without time zone) AND (VALUE < '2101-01-01 00:00:00'::timestamp without time zone)));
+
+
+ALTER DOMAIN public.d_reg_aeg OWNER TO t192406;
+
+--
+-- TOC entry 242 (class 1255 OID 426909)
+-- Name: f_aktiveeri_auto(integer); Type: FUNCTION; Schema: public; Owner: t192406
+--
+
+CREATE FUNCTION public.f_aktiveeri_auto(p_auto_kood integer) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+WITH muudatus AS (UPDATE Auto SET auto_seisundi_liik_kood=2
+WHERE auto_kood=p_auto_kood AND
+(auto_seisundi_liik_kood=1 OR auto_seisundi_liik_kood=3) AND
+((SELECT COUNT(*) AS mitu_kategooriat_omab
+FROM Auto_kategooria_omamine
+WHERE p_auto_kood = Auto_kategooria_omamine.auto_kood) > 0) RETURNING auto_kood)
+SELECT Count(*)>0 AS tulemus FROM muudatus;
+$$;
+
+
+ALTER FUNCTION public.f_aktiveeri_auto(p_auto_kood integer) OWNER TO t192406;
+
+--
+-- TOC entry 241 (class 1255 OID 426907)
+-- Name: f_lopeta_auto(integer); Type: FUNCTION; Schema: public; Owner: t192406
+--
+
+CREATE FUNCTION public.f_lopeta_auto(p_auto_kood integer) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+WITH muudatus AS (UPDATE Auto SET auto_seisundi_liik_kood=4
+WHERE auto_kood=p_auto_kood AND
+(auto_seisundi_liik_kood=2 OR auto_seisundi_liik_kood=3) RETURNING auto_kood)
+SELECT Count(*)>0 AS tulemus FROM muudatus;
+$$;
+
+
+ALTER FUNCTION public.f_lopeta_auto(p_auto_kood integer) OWNER TO t192406;
+
+--
+-- TOC entry 240 (class 1255 OID 426905)
+-- Name: f_muuda_auto_mitteaktiivseks(integer); Type: FUNCTION; Schema: public; Owner: t192406
+--
+
+CREATE FUNCTION public.f_muuda_auto_mitteaktiivseks(p_auto_kood integer) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+WITH muudatus AS (UPDATE Auto SET auto_seisundi_liik_kood=3
+WHERE auto_kood=p_auto_kood AND auto_seisundi_liik_kood=2 RETURNING auto_kood)
+SELECT Count(*)>0 AS tulemus FROM muudatus;
+$$;
+
+
+ALTER FUNCTION public.f_muuda_auto_mitteaktiivseks(p_auto_kood integer) OWNER TO t192406;
+
+--
+-- TOC entry 1799 (class 1417 OID 421418)
+-- Name: minu_testandmete_server_apex; Type: SERVER; Schema: -; Owner: t192406
+--
+
+CREATE SERVER minu_testandmete_server_apex FOREIGN DATA WRAPPER postgres_fdw OPTIONS (
+    dbname 'testandmed',
+    host 'apex.ttu.ee',
+    port '5432'
+);
+
+
+ALTER SERVER minu_testandmete_server_apex OWNER TO t192406;
+
+--
+-- TOC entry 3291 (class 0 OID 0)
+-- Name: USER MAPPING t192406 SERVER minu_testandmete_server_apex; Type: USER MAPPING; Schema: -; Owner: t192406
+--
+
+CREATE USER MAPPING FOR t192406 SERVER minu_testandmete_server_apex OPTIONS (
+    password 'Erkionparim',
+    "user" 't192406'
+);
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 219 (class 1259 OID 423598)
+-- Name: auto; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.auto (
+    auto_kood integer NOT NULL,
+    nimetus public.d_nimetus,
+    mudel character varying(100) NOT NULL,
+    valjalaske_aasta smallint NOT NULL,
+    reg_number character varying(9) NOT NULL,
+    istekohtade_arv smallint NOT NULL,
+    mootori_maht numeric(3,1) NOT NULL,
+    vin_kood character varying(17) NOT NULL,
+    reg_aeg public.d_reg_aeg,
+    registreerija_id integer NOT NULL,
+    auto_kytuse_liik_kood smallint NOT NULL,
+    auto_seisundi_liik_kood smallint DEFAULT 1 NOT NULL,
+    auto_mark_kood smallint NOT NULL,
+    CONSTRAINT chk_auto_istekohtade_arv_on_vahemikus CHECK (((istekohtade_arv >= 2) AND (istekohtade_arv <= 11))),
+    CONSTRAINT chk_auto_mootori_maht_on_positiivne CHECK ((mootori_maht >= (0)::numeric)),
+    CONSTRAINT chk_auto_mudel_pole_tyhi CHECK (((mudel)::text !~ '^[[:space:]]*$'::text)),
+    CONSTRAINT chk_auto_reg_number_ainult_suurtahed_ja_numbrid CHECK (((reg_number)::text ~ '^([[:upper:]]|[[:digit:]])*$'::text)),
+    CONSTRAINT chk_auto_reg_number_min_pikkus CHECK ((length((reg_number)::text) >= 2)),
+    CONSTRAINT chk_auto_reg_number_muster CHECK ((((reg_number)::text ~ '^([[:digit:]]{2}|[[:digit:]]{3})[[:upper:]]{3}$'::text) OR ((reg_number)::text ~ '^[[:upper:]]+[[:digit:]]+$'::text))),
+    CONSTRAINT chk_auto_reg_number_pole_tyhi CHECK (((reg_number)::text !~ '^[[:space:]]*$'::text)),
+    CONSTRAINT chk_auto_valjalaske_aasta_on_vahemikus CHECK (((valjalaske_aasta >= 2000) AND (valjalaske_aasta <= 2100))),
+    CONSTRAINT chk_auto_vin_kood_ainult_suurtahed_ja_numbrid CHECK (((vin_kood)::text ~ '^([[:upper:]]|[[:digit:]])*$'::text)),
+    CONSTRAINT chk_auto_vin_kood_min_pikkus CHECK ((length((vin_kood)::text) >= 11))
+)
+WITH (fillfactor='90');
+
+
+ALTER TABLE public.auto OWNER TO t192406;
+
+--
+-- TOC entry 207 (class 1259 OID 423441)
+-- Name: auto_mark; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.auto_mark (
+    auto_mark_kood smallint NOT NULL,
+    nimetus public.d_nimetus
+);
+
+
+ALTER TABLE public.auto_mark OWNER TO t192406;
+
+--
+-- TOC entry 209 (class 1259 OID 423457)
+-- Name: auto_seisundi_liik; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.auto_seisundi_liik (
+    auto_seisundi_liik_kood smallint NOT NULL,
+    nimetus public.d_nimetus
+);
+
+
+ALTER TABLE public.auto_seisundi_liik OWNER TO t192406;
+
+--
+-- TOC entry 222 (class 1259 OID 425278)
+-- Name: aktiivsed_mitteaktiivsed_autod; Type: VIEW; Schema: public; Owner: t192406
+--
+
+CREATE VIEW public.aktiivsed_mitteaktiivsed_autod AS
+ SELECT auto.auto_kood,
+    auto.nimetus,
+    auto_seisundi_liik.nimetus AS seisund,
+    auto_mark.nimetus AS mark,
+    auto.mudel,
+    auto.valjalaske_aasta,
+    auto.reg_number,
+    auto.vin_kood
+   FROM (public.auto_seisundi_liik
+     JOIN (public.auto_mark
+     JOIN public.auto ON ((auto_mark.auto_mark_kood = auto.auto_mark_kood))) ON ((auto_seisundi_liik.auto_seisundi_liik_kood = auto.auto_seisundi_liik_kood)))
+  WHERE (auto_seisundi_liik.auto_seisundi_liik_kood = ANY (ARRAY[2, 3]));
+
+
+ALTER TABLE public.aktiivsed_mitteaktiivsed_autod OWNER TO t192406;
+
+--
+-- TOC entry 214 (class 1259 OID 423499)
+-- Name: amet; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.amet (
+    amet_kood smallint NOT NULL,
+    nimetus public.d_nimetus,
+    kirjeldus text,
+    CONSTRAINT chk_amet_kirjeldus_pole_tyhi CHECK ((kirjeldus !~ '^[[:space:]]*$'::text))
+)
+WITH (fillfactor='90');
+
+
+ALTER TABLE public.amet OWNER TO t192406;
+
+--
+-- TOC entry 206 (class 1259 OID 423428)
+-- Name: auto_kategooria; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.auto_kategooria (
+    auto_kategooria_kood smallint NOT NULL,
+    nimetus public.d_nimetus,
+    auto_kategooria_tyyp_kood smallint NOT NULL
+);
+
+
+ALTER TABLE public.auto_kategooria OWNER TO t192406;
+
+--
+-- TOC entry 220 (class 1259 OID 423646)
+-- Name: auto_kategooria_omamine; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.auto_kategooria_omamine (
+    auto_kood integer NOT NULL,
+    auto_kategooria_kood smallint NOT NULL
+);
+
+
+ALTER TABLE public.auto_kategooria_omamine OWNER TO t192406;
+
+--
+-- TOC entry 205 (class 1259 OID 423420)
+-- Name: auto_kategooria_tyyp; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.auto_kategooria_tyyp (
+    auto_kategooria_tyyp_kood smallint NOT NULL,
+    nimetus public.d_nimetus
+);
+
+
+ALTER TABLE public.auto_kategooria_tyyp OWNER TO t192406;
+
+--
+-- TOC entry 223 (class 1259 OID 425485)
+-- Name: auto_kategooria_omamine_alamparing; Type: VIEW; Schema: public; Owner: t192406
+--
+
+CREATE VIEW public.auto_kategooria_omamine_alamparing AS
+ SELECT auto_kategooria_omamine.auto_kood,
+    concat(auto_kategooria.nimetus, ' (', auto_kategooria_tyyp.nimetus, ')') AS kategooria
+   FROM ((public.auto_kategooria_tyyp
+     JOIN public.auto_kategooria ON ((auto_kategooria_tyyp.auto_kategooria_tyyp_kood = auto_kategooria.auto_kategooria_tyyp_kood)))
+     JOIN public.auto_kategooria_omamine ON ((auto_kategooria.auto_kategooria_kood = auto_kategooria_omamine.auto_kategooria_kood)));
+
+
+ALTER TABLE public.auto_kategooria_omamine_alamparing OWNER TO t192406;
+
+--
+-- TOC entry 208 (class 1259 OID 423449)
+-- Name: auto_kytuse_liik; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.auto_kytuse_liik (
+    auto_kytuse_liik_kood smallint NOT NULL,
+    nimetus public.d_nimetus
+);
+
+
+ALTER TABLE public.auto_kytuse_liik OWNER TO t192406;
+
+--
+-- TOC entry 216 (class 1259 OID 423513)
+-- Name: isik; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.isik (
+    isik_id integer NOT NULL,
+    isikukood character varying(50) NOT NULL,
+    riik_kood character varying(3) NOT NULL,
+    e_meil character varying(254) NOT NULL,
+    isiku_seisundi_liik_kood smallint DEFAULT 1 NOT NULL,
+    synni_kp date NOT NULL,
+    parool character varying(60) NOT NULL,
+    reg_aeg public.d_reg_aeg,
+    eesnimi character varying(1500),
+    perenimi character varying(1000),
+    elukoht character varying(120),
+    CONSTRAINT chk_isik_e_meil_sisaldab_tapselt_uhe_at_marki CHECK (((e_meil)::text ~ '^[^@]*@[^@]*$'::text)),
+    CONSTRAINT chk_isik_eesnimi_pole_tyhi CHECK (((eesnimi)::text !~ '^[[:space:]]*$'::text)),
+    CONSTRAINT chk_isik_eesnimi_voi_perenimi_olemas CHECK (((eesnimi IS NOT NULL) OR (perenimi IS NOT NULL))),
+    CONSTRAINT chk_isik_elukoht_pole_ainult_numbritest CHECK (((elukoht)::text !~ '^[[:digit:]]*$'::text)),
+    CONSTRAINT chk_isik_elukoht_pole_tyhi CHECK (((elukoht)::text !~ '^[[:space:]]*$'::text)),
+    CONSTRAINT chk_isik_isikukood_ainult_lubatud_symbolid CHECK (((isikukood)::text ~ '^([[:alpha:]]|[[:digit:]]|[[:space:]]|-|\+|=|\\|\/)*$'::text)),
+    CONSTRAINT chk_isik_isikukood_pole_tyhi CHECK (((isikukood)::text !~ '^[[:space:]]*$'::text)),
+    CONSTRAINT chk_isik_perenimi_pole_tyhi CHECK (((perenimi)::text !~ '^[[:space:]]*$'::text)),
+    CONSTRAINT chk_isik_synni_kp_on_vahemikus CHECK (((synni_kp >= '1900-01-01'::date) AND (synni_kp < '2101-01-01'::date))),
+    CONSTRAINT chk_isik_synni_kp_pole_suurem_reg_ajast CHECK ((synni_kp <= (reg_aeg)::timestamp without time zone))
+)
+WITH (fillfactor='90');
+
+
+ALTER TABLE public.isik OWNER TO t192406;
+
+--
+-- TOC entry 218 (class 1259 OID 423568)
+-- Name: tootaja; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.tootaja (
+    isik_id integer NOT NULL,
+    amet_kood smallint NOT NULL,
+    tootaja_seisundi_liik_kood smallint DEFAULT 1 NOT NULL,
+    mentor integer,
+    CONSTRAINT chk_tootaja_pole_enda_mentor CHECK ((mentor <> isik_id))
+)
+WITH (fillfactor='90');
+
+
+ALTER TABLE public.tootaja OWNER TO t192406;
+
+--
+-- TOC entry 221 (class 1259 OID 425178)
+-- Name: autode_detailid; Type: VIEW; Schema: public; Owner: t192406
+--
+
+CREATE VIEW public.autode_detailid AS
+ SELECT auto.auto_kood,
+    auto.nimetus,
+    auto_mark.nimetus AS mark,
+    auto.mudel,
+    auto.valjalaske_aasta,
+    auto.mootori_maht,
+    auto_kytuse_liik.nimetus AS kytuse_liik,
+    auto.istekohtade_arv,
+    auto.reg_number,
+    auto.vin_kood,
+    auto.reg_aeg,
+    concat(isik.eesnimi, ' ', isik.perenimi, ' ', isik.e_meil) AS registreerija,
+    auto_seisundi_liik.nimetus AS hetke_seisund
+   FROM (public.auto_mark
+     JOIN ((public.auto_seisundi_liik
+     JOIN (public.auto_kytuse_liik
+     JOIN (public.auto
+     JOIN public.isik ON ((auto.registreerija_id = isik.isik_id))) ON ((auto_kytuse_liik.auto_kytuse_liik_kood = auto.auto_kytuse_liik_kood))) ON ((auto_seisundi_liik.auto_seisundi_liik_kood = auto.auto_seisundi_liik_kood)))
+     JOIN public.tootaja ON (((tootaja.isik_id = auto.registreerija_id) AND (isik.isik_id = tootaja.isik_id)))) ON ((auto_mark.auto_mark_kood = auto.auto_mark_kood)));
+
+
+ALTER TABLE public.autode_detailid OWNER TO t192406;
+
+--
+-- TOC entry 224 (class 1259 OID 426148)
+-- Name: autode_koondaruanne; Type: VIEW; Schema: public; Owner: t192406
+--
+
+CREATE VIEW public.autode_koondaruanne AS
+ SELECT auto_seisundi_liik.auto_seisundi_liik_kood,
+    upper((auto_seisundi_liik.nimetus)::text) AS auto_seisund,
+    count(auto.auto_kood) AS autode_arv_seisundis
+   FROM (public.auto_seisundi_liik
+     LEFT JOIN public.auto ON ((auto_seisundi_liik.auto_seisundi_liik_kood = auto.auto_seisundi_liik_kood)))
+  GROUP BY auto_seisundi_liik.auto_seisundi_liik_kood, (upper((auto_seisundi_liik.nimetus)::text))
+  ORDER BY (count(auto.auto_kood)) DESC, (upper((auto_seisundi_liik.nimetus)::text));
+
+
+ALTER TABLE public.autode_koondaruanne OWNER TO t192406;
+
+--
+-- TOC entry 215 (class 1259 OID 423511)
+-- Name: isik_isik_id_seq; Type: SEQUENCE; Schema: public; Owner: t192406
+--
+
+CREATE SEQUENCE public.isik_isik_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.isik_isik_id_seq OWNER TO t192406;
+
+--
+-- TOC entry 3292 (class 0 OID 0)
+-- Dependencies: 215
+-- Name: isik_isik_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: t192406
+--
+
+ALTER SEQUENCE public.isik_isik_id_seq OWNED BY public.isik.isik_id;
+
+
+--
+-- TOC entry 204 (class 1259 OID 421423)
+-- Name: isik_jsonb; Type: FOREIGN TABLE; Schema: public; Owner: t192406
+--
+
+CREATE FOREIGN TABLE public.isik_jsonb (
+    isik jsonb
+)
+SERVER minu_testandmete_server_apex;
+
+
+ALTER FOREIGN TABLE public.isik_jsonb OWNER TO t192406;
+
+--
+-- TOC entry 210 (class 1259 OID 423465)
+-- Name: isiku_seisundi_liik; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.isiku_seisundi_liik (
+    isiku_seisundi_liik_kood smallint NOT NULL,
+    nimetus public.d_nimetus
+);
+
+
+ALTER TABLE public.isiku_seisundi_liik OWNER TO t192406;
+
+--
+-- TOC entry 211 (class 1259 OID 423473)
+-- Name: kliendi_seisundi_liik; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.kliendi_seisundi_liik (
+    kliendi_seisundi_liik_kood smallint NOT NULL,
+    nimetus public.d_nimetus
+);
+
+
+ALTER TABLE public.kliendi_seisundi_liik OWNER TO t192406;
+
+--
+-- TOC entry 217 (class 1259 OID 423550)
+-- Name: klient; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.klient (
+    isik_id integer NOT NULL,
+    kliendi_seisundi_liik_kood smallint DEFAULT 1 NOT NULL,
+    on_nous_tylitamisega boolean DEFAULT false NOT NULL
+)
+WITH (fillfactor='90');
+
+
+ALTER TABLE public.klient OWNER TO t192406;
+
+--
+-- TOC entry 225 (class 1259 OID 426152)
+-- Name: koik_autod; Type: VIEW; Schema: public; Owner: t192406
+--
+
+CREATE VIEW public.koik_autod AS
+ SELECT auto.auto_kood,
+    auto.nimetus,
+    auto_seisundi_liik.nimetus AS seisund,
+    auto_mark.nimetus AS mark,
+    auto.mudel,
+    auto.valjalaske_aasta,
+    auto.reg_number,
+    auto.vin_kood
+   FROM (public.auto_mark
+     JOIN (public.auto_seisundi_liik
+     JOIN public.auto ON ((auto_seisundi_liik.auto_seisundi_liik_kood = auto.auto_seisundi_liik_kood))) ON ((auto_mark.auto_mark_kood = auto.auto_mark_kood)));
+
+
+ALTER TABLE public.koik_autod OWNER TO t192406;
+
+--
+-- TOC entry 213 (class 1259 OID 423489)
+-- Name: riik; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.riik (
+    riik_kood character varying(3) NOT NULL,
+    nimetus character varying(90) NOT NULL,
+    CONSTRAINT chk_riik_nimetus_pole_tyhi CHECK (((nimetus)::text !~ '^[[:space:]]*$'::text)),
+    CONSTRAINT chk_riik_riik_kood_kolmest_suurtahest CHECK (((riik_kood)::text ~ '^[A-Z]{3}$'::text)),
+    CONSTRAINT chk_riik_riik_kood_pole_tyhi CHECK (((riik_kood)::text !~ '^[[:space:]]*$'::text))
+);
+
+
+ALTER TABLE public.riik OWNER TO t192406;
+
+--
+-- TOC entry 203 (class 1259 OID 421420)
+-- Name: riik_jsonb; Type: FOREIGN TABLE; Schema: public; Owner: t192406
+--
+
+CREATE FOREIGN TABLE public.riik_jsonb (
+    riik jsonb
+)
+SERVER minu_testandmete_server_apex;
+
+
+ALTER FOREIGN TABLE public.riik_jsonb OWNER TO t192406;
+
+--
+-- TOC entry 212 (class 1259 OID 423481)
+-- Name: tootaja_seisundi_liik; Type: TABLE; Schema: public; Owner: t192406
+--
+
+CREATE TABLE public.tootaja_seisundi_liik (
+    tootaja_seisundi_liik_kood smallint NOT NULL,
+    nimetus public.d_nimetus
+);
+
+
+ALTER TABLE public.tootaja_seisundi_liik OWNER TO t192406;
+
+--
+-- TOC entry 3027 (class 2604 OID 423516)
+-- Name: isik isik_id; Type: DEFAULT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.isik ALTER COLUMN isik_id SET DEFAULT nextval('public.isik_isik_id_seq'::regclass);
+
+
+--
+-- TOC entry 3278 (class 0 OID 423499)
+-- Dependencies: 214
+-- Data for Name: amet; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.amet (amet_kood, nimetus, kirjeldus) VALUES (1, 'Juhataja', NULL);
+INSERT INTO public.amet (amet_kood, nimetus, kirjeldus) VALUES (2, 'Klienditeenindaja', NULL);
+INSERT INTO public.amet (amet_kood, nimetus, kirjeldus) VALUES (3, 'Süsteemihaldur', NULL);
+
+
+--
+-- TOC entry 3283 (class 0 OID 423598)
+-- Dependencies: 219
+-- Data for Name: auto; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (14, 'Phaeton1', 'Phaeton', 2011, '121YYY', 5, 3.0, 'WVWZZZ3CZEE075353', '2019-12-05 22:25:11', 7, 2, 1, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (15, 'Passat1', 'Passat', 2014, '955TTR', 5, 2.0, 'WVWZZZ3CZEE075372', '2019-12-05 22:27:25', 7, 2, 4, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (16, 'Passat2', 'Passat', 2014, '777HHG', 5, 1.6, 'WVWZZZ3CZEE075354', '2019-12-05 22:30:08', 7, 2, 4, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (17, 'Passat3', 'Passat', 2014, '879TRY', 5, 1.4, 'WVWZZZ3CZEE116550', '2019-12-05 22:35:45', 7, 1, 1, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (18, 'Touareg1', 'Touareg', 2010, '669UHJ', 5, 3.0, 'WVGZZZ7PZCD026979', '2019-12-05 22:38:51', 12, 2, 2, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (100, 'Astra1', 'Astra', 2012, '666ABV', 5, 1.6, 'W0L0AHL69CG047752', '2019-12-05 22:40:13', 11, 1, 1, 2);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (200, 'Tesla1', 'Model S', 2015, 'TES001', 5, 0.0, '5YJSA3H16EFP29293', '2019-12-05 22:42:51', 7, 5, 1, 3);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (11, 'Golf1', 'Golf', 2013, '123ABC', 5, 1.4, 'WVWZZZAUZGP120820', '2019-12-05 22:42:51', 7, 1, 1, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (300, 'Leaf1', 'Leaf', 2014, '849GJR', 5, 0.0, 'SJNFAAZE0U6014007', '2019-12-05 22:54:07', 11, 5, 1, 4);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (13, 'Golf3', 'Golf', 2013, '332XXA', 5, 1.6, 'WVWZZZ1KZDM649841', '2019-12-05 22:23:44', 7, 2, 3, 1);
+INSERT INTO public.auto (auto_kood, nimetus, mudel, valjalaske_aasta, reg_number, istekohtade_arv, mootori_maht, vin_kood, reg_aeg, registreerija_id, auto_kytuse_liik_kood, auto_seisundi_liik_kood, auto_mark_kood) VALUES (12, 'Golf2', 'Golf', 2016, '223BBC', 5, 1.4, 'WVWZZZAUZGP120828', '2019-12-05 22:21:51', 7, 1, 2, 1);
+
+
+--
+-- TOC entry 3270 (class 0 OID 423428)
+-- Dependencies: 206
+-- Data for Name: auto_kategooria; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.auto_kategooria (auto_kategooria_kood, nimetus, auto_kategooria_tyyp_kood) VALUES (3, 'Luksusauto', 2);
+INSERT INTO public.auto_kategooria (auto_kategooria_kood, nimetus, auto_kategooria_tyyp_kood) VALUES (6, 'Džiip', 1);
+INSERT INTO public.auto_kategooria (auto_kategooria_kood, nimetus, auto_kategooria_tyyp_kood) VALUES (5, 'Kaubik', 1);
+INSERT INTO public.auto_kategooria (auto_kategooria_kood, nimetus, auto_kategooria_tyyp_kood) VALUES (4, 'Minibuss', 1);
+INSERT INTO public.auto_kategooria (auto_kategooria_kood, nimetus, auto_kategooria_tyyp_kood) VALUES (2, 'Väikeauto', 2);
+INSERT INTO public.auto_kategooria (auto_kategooria_kood, nimetus, auto_kategooria_tyyp_kood) VALUES (1, 'Pereauto', 2);
+
+
+--
+-- TOC entry 3284 (class 0 OID 423646)
+-- Dependencies: 220
+-- Data for Name: auto_kategooria_omamine; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (12, 1);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (13, 1);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (15, 1);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (17, 1);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (100, 1);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (11, 1);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (300, 2);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (200, 3);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (14, 3);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (18, 6);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (16, 2);
+INSERT INTO public.auto_kategooria_omamine (auto_kood, auto_kategooria_kood) VALUES (18, 3);
+
+
+--
+-- TOC entry 3269 (class 0 OID 423420)
+-- Dependencies: 205
+-- Data for Name: auto_kategooria_tyyp; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.auto_kategooria_tyyp (auto_kategooria_tyyp_kood, nimetus) VALUES (1, 'Ruumikus');
+INSERT INTO public.auto_kategooria_tyyp (auto_kategooria_tyyp_kood, nimetus) VALUES (2, 'Sihtgrupp');
+
+
+--
+-- TOC entry 3272 (class 0 OID 423449)
+-- Dependencies: 208
+-- Data for Name: auto_kytuse_liik; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.auto_kytuse_liik (auto_kytuse_liik_kood, nimetus) VALUES (1, 'Bensiin');
+INSERT INTO public.auto_kytuse_liik (auto_kytuse_liik_kood, nimetus) VALUES (2, 'Diisel');
+INSERT INTO public.auto_kytuse_liik (auto_kytuse_liik_kood, nimetus) VALUES (3, 'Gaas');
+INSERT INTO public.auto_kytuse_liik (auto_kytuse_liik_kood, nimetus) VALUES (4, 'Pistikhübriid');
+INSERT INTO public.auto_kytuse_liik (auto_kytuse_liik_kood, nimetus) VALUES (5, 'Elektriauto');
+
+
+--
+-- TOC entry 3271 (class 0 OID 423441)
+-- Dependencies: 207
+-- Data for Name: auto_mark; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.auto_mark (auto_mark_kood, nimetus) VALUES (1, 'Volkswagen');
+INSERT INTO public.auto_mark (auto_mark_kood, nimetus) VALUES (2, 'Opel');
+INSERT INTO public.auto_mark (auto_mark_kood, nimetus) VALUES (3, 'Nissan');
+INSERT INTO public.auto_mark (auto_mark_kood, nimetus) VALUES (4, 'Tesla');
+
+
+--
+-- TOC entry 3273 (class 0 OID 423457)
+-- Dependencies: 209
+-- Data for Name: auto_seisundi_liik; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.auto_seisundi_liik (auto_seisundi_liik_kood, nimetus) VALUES (1, 'Ootel');
+INSERT INTO public.auto_seisundi_liik (auto_seisundi_liik_kood, nimetus) VALUES (2, 'Aktiivne');
+INSERT INTO public.auto_seisundi_liik (auto_seisundi_liik_kood, nimetus) VALUES (3, 'Mitteaktiivne');
+INSERT INTO public.auto_seisundi_liik (auto_seisundi_liik_kood, nimetus) VALUES (4, 'Lõpetatud');
+
+
+--
+-- TOC entry 3280 (class 0 OID 423513)
+-- Dependencies: 216
+-- Data for Name: isik; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (1, '27515832667968168000', 'USA', 'ward.richard@comvoy.co.uk', 1, '1989-04-28', 'incididunt', '2019-12-06 20:07:33', 'Ward', 'Richard', '207 Doughty Street, Staples, Indiana, 9524');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (2, '15341433215970306000', 'USA', 'lucile.burgess@frolix.net', 1, '1977-08-11', 'laborum', '2019-12-06 20:07:33', 'Lucile', 'Burgess', '470 Lincoln Place, Bethpage, Oregon, 5017');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (3, '70038558336176980000', 'USA', 'louella.henson@colaire.com', 1, '1966-08-15', 'do', '2019-12-06 20:07:33', 'Louella', 'Henson', '578 Wyckoff Street, Starks, District Of Columbia, 7644');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (4, '80634337199925790000', 'USA', 'joy.hawkins@geekosis.name', 1, '1997-10-23', 'sint', '2019-12-06 20:07:33', 'Joy', 'Hawkins', '328 Lacon Court, Sehili, Florida, 4913');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (5, '47066086861941710000', 'USA', 'penny.williams@deviltoe.me', 1, '1988-02-06', 'anim', '2019-12-06 20:07:33', 'Penny', 'Williams', '696 Fair Street, Dennard, Colorado, 2702');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (6, '44858842069209300000', 'USA', 'cole.nichols@ezent.biz', 1, '1980-09-27', 'dolore', '2019-12-06 20:07:33', 'Cole', 'Nichols', '180 Branton Street, Orick, Mississippi, 1966');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (7, '5187095594760457000', 'USA', 'love.curry@zentility.org', 1, '1993-02-10', 'incididunt', '2019-12-06 20:07:33', 'Love', 'Curry', '138 Shale Street, Groveville, Hawaii, 2806');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (8, '14486824729649263000', 'USA', 'maritza.alexander@franscene.io', 1, '1997-05-25', 'nostrud', '2019-12-06 20:07:33', 'Maritza', 'Alexander', '780 Brighton Court, Lindcove, Ohio, 4290');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (9, '32584045717715034000', 'USA', 'sybil.castaneda@jamnation.tv', 1, '1993-03-02', 'non', '2019-12-06 20:07:33', 'Sybil', 'Castaneda', '305 Rutherford Place, Dawn, Rhode Island, 6080');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (10, '55305706714092765000', 'CAN', 'humphrey.villarreal@organica.co.uk', 1, '1986-05-19', 'reprehenderit', '2019-12-06 20:07:33', 'Humphrey', 'Villarreal', '621 Seagate Terrace, Bayview, Wyoming, 823');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (11, '48655957920023260000', 'CAN', 'sheena.whitney@comveyor.tv', 1, '1991-07-27', 'veniam', '2019-12-06 20:07:33', 'Sheena', 'Whitney', '669 Dean Street, Albrightsville, Nevada, 4912');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (12, '26907995024554610000', 'CAN', 'flynn.combs@neteria.io', 1, '1983-04-15', 'non', '2019-12-06 20:07:33', 'Flynn', 'Combs', '977 Coles Street, Gilgo, Pennsylvania, 7787');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (13, '66366267417195620000', 'CAN', 'fox.aguirre@farmex.org', 1, '1951-08-03', 'tempor', '2019-12-06 20:07:33', 'Fox', 'Aguirre', '829 Applegate Court, Goochland, Guam, 8320');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (14, '53575005875886270000', 'CAN', 'warner.hull@automon.ca', 1, '1998-07-08', 'do', '2019-12-06 20:07:33', 'Warner', 'Hull', '434 Seeley Street, Hollins, Maryland, 1653');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (15, '1606250517596442600', 'CAN', 'kristin.rollins@eweville.co.uk', 1, '1981-04-07', 'eiusmod', '2019-12-06 20:07:33', 'Kristin', 'Rollins', '951 Marconi Place, Sedley, Hawaii, 9635');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (16, '90467859363205270000', 'CAN', 'karin.wynn@qualitern.tv', 1, '1995-05-05', 'sit', '2019-12-06 20:07:33', 'Karin', 'Wynn', '502 Lamont Court, Highland, Nebraska, 9391');
+INSERT INTO public.isik (isik_id, isikukood, riik_kood, e_meil, isiku_seisundi_liik_kood, synni_kp, parool, reg_aeg, eesnimi, perenimi, elukoht) VALUES (17, '60923665020797200000', 'CAN', 'carmella.russo@geekosis.io', 1, '1998-09-17', 'consequat', '2019-12-06 20:07:33', 'Carmella', 'Russo', '902 Orange Street, Greensburg, District Of Columbia, 5540');
+
+
+--
+-- TOC entry 3274 (class 0 OID 423465)
+-- Dependencies: 210
+-- Data for Name: isiku_seisundi_liik; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.isiku_seisundi_liik (isiku_seisundi_liik_kood, nimetus) VALUES (1, 'Elus');
+INSERT INTO public.isiku_seisundi_liik (isiku_seisundi_liik_kood, nimetus) VALUES (2, 'Surnud');
+
+
+--
+-- TOC entry 3275 (class 0 OID 423473)
+-- Dependencies: 211
+-- Data for Name: kliendi_seisundi_liik; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.kliendi_seisundi_liik (kliendi_seisundi_liik_kood, nimetus) VALUES (1, 'Aktiivne');
+INSERT INTO public.kliendi_seisundi_liik (kliendi_seisundi_liik_kood, nimetus) VALUES (2, 'Mustas nimekirjas');
+
+
+--
+-- TOC entry 3281 (class 0 OID 423550)
+-- Dependencies: 217
+-- Data for Name: klient; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.klient (isik_id, kliendi_seisundi_liik_kood, on_nous_tylitamisega) VALUES (8, 1, true);
+INSERT INTO public.klient (isik_id, kliendi_seisundi_liik_kood, on_nous_tylitamisega) VALUES (9, 2, true);
+INSERT INTO public.klient (isik_id, kliendi_seisundi_liik_kood, on_nous_tylitamisega) VALUES (10, 1, false);
+INSERT INTO public.klient (isik_id, kliendi_seisundi_liik_kood, on_nous_tylitamisega) VALUES (11, 1, false);
+
+
+--
+-- TOC entry 3277 (class 0 OID 423489)
+-- Dependencies: 213
+-- Data for Name: riik; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('AFG', 'Afghanistan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ALA', 'Åland Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ALB', 'Albania');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('DZA', 'Algeria');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ASM', 'American Samoa');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('AND', 'Andorra');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('AGO', 'Angola');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('AIA', 'Anguilla');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ATA', 'Antarctica');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ATG', 'Antigua and Barbuda');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ARG', 'Argentina');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ARM', 'Armenia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ABW', 'Aruba');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('AUS', 'Australia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('AUT', 'Austria');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('AZE', 'Azerbaijan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BHS', 'Bahamas');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BHR', 'Bahrain');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BGD', 'Bangladesh');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BRB', 'Barbados');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BLR', 'Belarus');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BEL', 'Belgium');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BLZ', 'Belize');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BEN', 'Benin');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BMU', 'Bermuda');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BTN', 'Bhutan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BOL', 'Bolivia, Plurinational State of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BIH', 'Bosnia and Herzegovina');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BWA', 'Botswana');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BVT', 'Bouvet Island');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BRA', 'Brazil');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('IOT', 'British Indian Ocean Territory');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BRN', 'Brunei Darussalam');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BGR', 'Bulgaria');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BFA', 'Burkina Faso');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BDI', 'Burundi');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KHM', 'Cambodia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CMR', 'Cameroon');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CAN', 'Canada');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CPV', 'Cape Verde');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CYM', 'Cayman Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CAF', 'Central African Republic');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TCD', 'Chad');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CHL', 'Chile');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CHN', 'China');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CXR', 'Christmas Island');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CCK', 'Cocos (Keeling) Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('COL', 'Colombia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('COM', 'Comoros');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('COG', 'Congo');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('COD', 'Congo, the Democratic Republic of the');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('COK', 'Cook Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CRI', 'Costa Rica');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CIV', 'Côte d''Ivoire');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('HRV', 'Croatia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CUB', 'Cuba');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CYP', 'Cyprus');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CZE', 'Czech Republic');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('DNK', 'Denmark');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('DJI', 'Djibouti');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('DMA', 'Dominica');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('DOM', 'Dominican Republic');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ECU', 'Ecuador');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('EGY', 'Egypt');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SLV', 'El Salvador');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GNQ', 'Equatorial Guinea');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ERI', 'Eritrea');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('EST', 'Estonia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ETH', 'Ethiopia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('FLK', 'Falkland Islands (Malvinas)');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('FRO', 'Faroe Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('FJI', 'Fiji');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('FIN', 'Finland');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('FRA', 'France');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GUF', 'French Guiana');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PYF', 'French Polynesia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ATF', 'French Southern Territories');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GAB', 'Gabon');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GMB', 'Gambia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GEO', 'Georgia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('DEU', 'Germany');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GHA', 'Ghana');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GIB', 'Gibraltar');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GRC', 'Greece');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GRL', 'Greenland');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GRD', 'Grenada');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GLP', 'Guadeloupe');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GUM', 'Guam');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GTM', 'Guatemala');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GGY', 'Guernsey');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GIN', 'Guinea');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GNB', 'Guinea-Bissau');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GUY', 'Guyana');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('HTI', 'Haiti');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('HMD', 'Heard Island and McDonald Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('VAT', 'Holy See (Vatican City State)');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('HND', 'Honduras');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('HKG', 'Hong Kong');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('HUN', 'Hungary');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ISL', 'Iceland');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('IND', 'India');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('IDN', 'Indonesia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('IRN', 'Iran, Islamic Republic of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('IRQ', 'Iraq');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('IRL', 'Ireland');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('IMN', 'Isle of Man');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ISR', 'Israel');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ITA', 'Italy');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('JAM', 'Jamaica');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('JPN', 'Japan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('JEY', 'Jersey');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('JOR', 'Jordan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KAZ', 'Kazakhstan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KEN', 'Kenya');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KIR', 'Kiribati');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PRK', 'Korea, Democratic People''s Republic of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KOR', 'Korea, Republic of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KWT', 'Kuwait');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KGZ', 'Kyrgyzstan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LAO', 'Lao People''s Democratic Republic');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LVA', 'Latvia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LBN', 'Lebanon');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LSO', 'Lesotho');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LBR', 'Liberia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LBY', 'Libyan Arab Jamahiriya');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LIE', 'Liechtenstein');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LTU', 'Lithuania');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LUX', 'Luxembourg');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MAC', 'Macao');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MKD', 'Macedonia, the former Yugoslav Republic of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MDG', 'Madagascar');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MWI', 'Malawi');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MYS', 'Malaysia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MDV', 'Maldives');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MLI', 'Mali');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MLT', 'Malta');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MHL', 'Marshall Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MTQ', 'Martinique');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MRT', 'Mauritania');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MUS', 'Mauritius');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MYT', 'Mayotte');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MEX', 'Mexico');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('FSM', 'Micronesia, Federated States of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MDA', 'Moldova, Republic of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MCO', 'Monaco');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MNG', 'Mongolia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MNE', 'Montenegro');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MSR', 'Montserrat');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MAR', 'Morocco');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MOZ', 'Mozambique');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MMR', 'Myanmar');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NAM', 'Namibia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NRU', 'Nauru');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NPL', 'Nepal');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NLD', 'Netherlands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ANT', 'Netherlands Antilles');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NCL', 'New Caledonia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NZL', 'New Zealand');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NIC', 'Nicaragua');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NER', 'Niger');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NGA', 'Nigeria');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NIU', 'Niue');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NFK', 'Norfolk Island');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MNP', 'Northern Mariana Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('NOR', 'Norway');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('OMN', 'Oman');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PAK', 'Pakistan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PLW', 'Palau');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PSE', 'Palestinian Territory, Occupied');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PAN', 'Panama');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PNG', 'Papua New Guinea');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PRY', 'Paraguay');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PER', 'Peru');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PHL', 'Philippines');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PCN', 'Pitcairn');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('POL', 'Poland');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PRT', 'Portugal');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('PRI', 'Puerto Rico');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('QAT', 'Qatar');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('REU', 'Réunion');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ROU', 'Romania');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('RUS', 'Russian Federation');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('RWA', 'Rwanda');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('BLM', 'Saint Barthélemy');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SHN', 'Saint Helena, Ascension and Tristan da Cunha');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('KNA', 'Saint Kitts and Nevis');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LCA', 'Saint Lucia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('MAF', 'Saint Martin (French part)');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SPM', 'Saint Pierre and Miquelon');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('VCT', 'Saint Vincent and the Grenadines');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('WSM', 'Samoa');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SMR', 'San Marino');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('STP', 'Sao Tome and Principe');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SAU', 'Saudi Arabia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SEN', 'Senegal');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SRB', 'Serbia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SYC', 'Seychelles');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SLE', 'Sierra Leone');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SGP', 'Singapore');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SVK', 'Slovakia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SVN', 'Slovenia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SLB', 'Solomon Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SOM', 'Somalia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ZAF', 'South Africa');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SGS', 'South Georgia and the South Sandwich Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ESP', 'Spain');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('LKA', 'Sri Lanka');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SDN', 'Sudan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SUR', 'Suriname');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SJM', 'Svalbard and Jan Mayen');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SWZ', 'Swaziland');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SWE', 'Sweden');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('CHE', 'Switzerland');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('SYR', 'Syrian Arab Republic');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TWN', 'Taiwan, Province of China');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TJK', 'Tajikistan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TZA', 'Tanzania, United Republic of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('THA', 'Thailand');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TLS', 'Timor-Leste');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TGO', 'Togo');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TKL', 'Tokelau');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TON', 'Tonga');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TTO', 'Trinidad and Tobago');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TUN', 'Tunisia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TUR', 'Turkey');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TKM', 'Turkmenistan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TCA', 'Turks and Caicos Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('TUV', 'Tuvalu');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('UGA', 'Uganda');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('UKR', 'Ukraine');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ARE', 'United Arab Emirates');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('GBR', 'United Kingdom');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('USA', 'United States');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('UMI', 'United States Minor Outlying Islands');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('URY', 'Uruguay');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('UZB', 'Uzbekistan');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('VUT', 'Vanuatu');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('VEN', 'Venezuela, Bolivarian Republic of');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('VNM', 'Viet Nam');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('VGB', 'Virgin Islands, British');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('VIR', 'Virgin Islands, U.S.');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('WLF', 'Wallis and Futuna');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ESH', 'Western Sahara');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('YEM', 'Yemen');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ZMB', 'Zambia');
+INSERT INTO public.riik (riik_kood, nimetus) VALUES ('ZWE', 'Zimbabwe');
+
+
+--
+-- TOC entry 3282 (class 0 OID 423568)
+-- Dependencies: 218
+-- Data for Name: tootaja; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.tootaja (isik_id, amet_kood, tootaja_seisundi_liik_kood, mentor) VALUES (6, 1, 1, NULL);
+INSERT INTO public.tootaja (isik_id, amet_kood, tootaja_seisundi_liik_kood, mentor) VALUES (12, 3, 4, NULL);
+INSERT INTO public.tootaja (isik_id, amet_kood, tootaja_seisundi_liik_kood, mentor) VALUES (7, 2, 1, 6);
+INSERT INTO public.tootaja (isik_id, amet_kood, tootaja_seisundi_liik_kood, mentor) VALUES (11, 2, 2, 7);
+
+
+--
+-- TOC entry 3276 (class 0 OID 423481)
+-- Dependencies: 212
+-- Data for Name: tootaja_seisundi_liik; Type: TABLE DATA; Schema: public; Owner: t192406
+--
+
+INSERT INTO public.tootaja_seisundi_liik (tootaja_seisundi_liik_kood, nimetus) VALUES (1, 'Tööl');
+INSERT INTO public.tootaja_seisundi_liik (tootaja_seisundi_liik_kood, nimetus) VALUES (2, 'Puhkusel');
+INSERT INTO public.tootaja_seisundi_liik (tootaja_seisundi_liik_kood, nimetus) VALUES (3, 'Haiguslehel');
+INSERT INTO public.tootaja_seisundi_liik (tootaja_seisundi_liik_kood, nimetus) VALUES (4, 'Töösuhe peatatud');
+INSERT INTO public.tootaja_seisundi_liik (tootaja_seisundi_liik_kood, nimetus) VALUES (5, 'Vallandatud');
+INSERT INTO public.tootaja_seisundi_liik (tootaja_seisundi_liik_kood, nimetus) VALUES (6, 'Katseajal');
+
+
+--
+-- TOC entry 3293 (class 0 OID 0)
+-- Dependencies: 215
+-- Name: isik_isik_id_seq; Type: SEQUENCE SET; Schema: public; Owner: t192406
+--
+
+SELECT pg_catalog.setval('public.isik_isik_id_seq', 17, true);
+
+
+--
+-- TOC entry 3091 (class 2606 OID 424303)
+-- Name: amet ak_amet_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.amet
+    ADD CONSTRAINT ak_amet_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3059 (class 2606 OID 424326)
+-- Name: auto_kategooria ak_auto_kategooria_auto_kategooria_tyyp_ja_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria
+    ADD CONSTRAINT ak_auto_kategooria_auto_kategooria_tyyp_ja_nimetus UNIQUE (auto_kategooria_tyyp_kood, nimetus);
+
+
+--
+-- TOC entry 3055 (class 2606 OID 424313)
+-- Name: auto_kategooria_tyyp ak_auto_kategooria_tyyp_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria_tyyp
+    ADD CONSTRAINT ak_auto_kategooria_tyyp_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3067 (class 2606 OID 424352)
+-- Name: auto_kytuse_liik ak_auto_kytuse_liik_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kytuse_liik
+    ADD CONSTRAINT ak_auto_kytuse_liik_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3063 (class 2606 OID 424339)
+-- Name: auto_mark ak_auto_mark_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_mark
+    ADD CONSTRAINT ak_auto_mark_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3110 (class 2606 OID 424417)
+-- Name: auto ak_auto_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto
+    ADD CONSTRAINT ak_auto_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3071 (class 2606 OID 424365)
+-- Name: auto_seisundi_liik ak_auto_seisundi_liik_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_seisundi_liik
+    ADD CONSTRAINT ak_auto_seisundi_liik_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3113 (class 2606 OID 423618)
+-- Name: auto ak_auto_vin_kood; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto
+    ADD CONSTRAINT ak_auto_vin_kood UNIQUE (vin_kood);
+
+
+--
+-- TOC entry 3096 (class 2606 OID 423536)
+-- Name: isik ak_isik_isikukood_ja_riik_kood; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.isik
+    ADD CONSTRAINT ak_isik_isikukood_ja_riik_kood UNIQUE (isikukood, riik_kood);
+
+
+--
+-- TOC entry 3075 (class 2606 OID 424378)
+-- Name: isiku_seisundi_liik ak_isiku_seisundi_liik_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.isiku_seisundi_liik
+    ADD CONSTRAINT ak_isiku_seisundi_liik_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3079 (class 2606 OID 424391)
+-- Name: kliendi_seisundi_liik ak_kliendi_seisundi_liik_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.kliendi_seisundi_liik
+    ADD CONSTRAINT ak_kliendi_seisundi_liik_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3087 (class 2606 OID 423498)
+-- Name: riik ak_riik_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.riik
+    ADD CONSTRAINT ak_riik_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3083 (class 2606 OID 424404)
+-- Name: tootaja_seisundi_liik ak_tootaja_seisundi_liik_nimetus; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.tootaja_seisundi_liik
+    ADD CONSTRAINT ak_tootaja_seisundi_liik_nimetus UNIQUE (nimetus);
+
+
+--
+-- TOC entry 3093 (class 2606 OID 423508)
+-- Name: amet pk_amet; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.amet
+    ADD CONSTRAINT pk_amet PRIMARY KEY (amet_kood);
+
+
+--
+-- TOC entry 3119 (class 2606 OID 423616)
+-- Name: auto pk_auto; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto
+    ADD CONSTRAINT pk_auto PRIMARY KEY (auto_kood);
+
+
+--
+-- TOC entry 3061 (class 2606 OID 423433)
+-- Name: auto_kategooria pk_auto_kategooria; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria
+    ADD CONSTRAINT pk_auto_kategooria PRIMARY KEY (auto_kategooria_kood);
+
+
+--
+-- TOC entry 3122 (class 2606 OID 423650)
+-- Name: auto_kategooria_omamine pk_auto_kategooria_omamine; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria_omamine
+    ADD CONSTRAINT pk_auto_kategooria_omamine PRIMARY KEY (auto_kood, auto_kategooria_kood);
+
+
+--
+-- TOC entry 3057 (class 2606 OID 423425)
+-- Name: auto_kategooria_tyyp pk_auto_kategooria_tyyp; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria_tyyp
+    ADD CONSTRAINT pk_auto_kategooria_tyyp PRIMARY KEY (auto_kategooria_tyyp_kood);
+
+
+--
+-- TOC entry 3069 (class 2606 OID 423454)
+-- Name: auto_kytuse_liik pk_auto_kytuse_liik; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kytuse_liik
+    ADD CONSTRAINT pk_auto_kytuse_liik PRIMARY KEY (auto_kytuse_liik_kood);
+
+
+--
+-- TOC entry 3065 (class 2606 OID 423446)
+-- Name: auto_mark pk_auto_mark; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_mark
+    ADD CONSTRAINT pk_auto_mark PRIMARY KEY (auto_mark_kood);
+
+
+--
+-- TOC entry 3073 (class 2606 OID 423462)
+-- Name: auto_seisundi_liik pk_auto_seisundi_liik; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_seisundi_liik
+    ADD CONSTRAINT pk_auto_seisundi_liik PRIMARY KEY (auto_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3100 (class 2606 OID 423534)
+-- Name: isik pk_isik; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.isik
+    ADD CONSTRAINT pk_isik PRIMARY KEY (isik_id);
+
+
+--
+-- TOC entry 3077 (class 2606 OID 423470)
+-- Name: isiku_seisundi_liik pk_isiku_seisundi_liik; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.isiku_seisundi_liik
+    ADD CONSTRAINT pk_isiku_seisundi_liik PRIMARY KEY (isiku_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3081 (class 2606 OID 423478)
+-- Name: kliendi_seisundi_liik pk_kliendi_seisundi_liik; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.kliendi_seisundi_liik
+    ADD CONSTRAINT pk_kliendi_seisundi_liik PRIMARY KEY (kliendi_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3103 (class 2606 OID 423556)
+-- Name: klient pk_klient; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.klient
+    ADD CONSTRAINT pk_klient PRIMARY KEY (isik_id);
+
+
+--
+-- TOC entry 3089 (class 2606 OID 423496)
+-- Name: riik pk_riik; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.riik
+    ADD CONSTRAINT pk_riik PRIMARY KEY (riik_kood);
+
+
+--
+-- TOC entry 3108 (class 2606 OID 423574)
+-- Name: tootaja pk_tootaja; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.tootaja
+    ADD CONSTRAINT pk_tootaja PRIMARY KEY (isik_id);
+
+
+--
+-- TOC entry 3085 (class 2606 OID 423486)
+-- Name: tootaja_seisundi_liik pk_tootaja_seisundi_liik; Type: CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.tootaja_seisundi_liik
+    ADD CONSTRAINT pk_tootaja_seisundi_liik PRIMARY KEY (tootaja_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3111 (class 1259 OID 423641)
+-- Name: ak_auto_reg_number_aktiivne; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE UNIQUE INDEX ak_auto_reg_number_aktiivne ON public.auto USING btree (reg_number) WHERE (auto_seisundi_liik_kood = 2);
+
+
+--
+-- TOC entry 3094 (class 1259 OID 423547)
+-- Name: ak_isik_e_meil_tostutundetud; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE UNIQUE INDEX ak_isik_e_meil_tostutundetud ON public.isik USING btree (lower((e_meil)::text));
+
+
+--
+-- TOC entry 3114 (class 1259 OID 423642)
+-- Name: ixfk_auto_auto_kytuse_liik; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_auto_auto_kytuse_liik ON public.auto USING btree (auto_kytuse_liik_kood);
+
+
+--
+-- TOC entry 3115 (class 1259 OID 423643)
+-- Name: ixfk_auto_auto_mark; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_auto_auto_mark ON public.auto USING btree (auto_mark_kood);
+
+
+--
+-- TOC entry 3116 (class 1259 OID 423644)
+-- Name: ixfk_auto_auto_seisundi_liik; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_auto_auto_seisundi_liik ON public.auto USING btree (auto_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3120 (class 1259 OID 423661)
+-- Name: ixfk_auto_kategooria_omamine_auto_kategooria; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_auto_kategooria_omamine_auto_kategooria ON public.auto_kategooria_omamine USING btree (auto_kategooria_kood);
+
+
+--
+-- TOC entry 3117 (class 1259 OID 423645)
+-- Name: ixfk_auto_tootaja; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_auto_tootaja ON public.auto USING btree (registreerija_id);
+
+
+--
+-- TOC entry 3097 (class 1259 OID 423548)
+-- Name: ixfk_isik_isiku_seisundi_liik; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_isik_isiku_seisundi_liik ON public.isik USING btree (isiku_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3098 (class 1259 OID 423549)
+-- Name: ixfk_isik_riik; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_isik_riik ON public.isik USING btree (riik_kood);
+
+
+--
+-- TOC entry 3101 (class 1259 OID 423567)
+-- Name: ixfk_klient_kliendi_seisundi_liik; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_klient_kliendi_seisundi_liik ON public.klient USING btree (kliendi_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3104 (class 1259 OID 423595)
+-- Name: ixfk_tootaja_amet; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_tootaja_amet ON public.tootaja USING btree (amet_kood);
+
+
+--
+-- TOC entry 3105 (class 1259 OID 423596)
+-- Name: ixfk_tootaja_tootaja; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_tootaja_tootaja ON public.tootaja USING btree (mentor);
+
+
+--
+-- TOC entry 3106 (class 1259 OID 423597)
+-- Name: ixfk_tootaja_tootaja_seisundi_liik; Type: INDEX; Schema: public; Owner: t192406
+--
+
+CREATE INDEX ixfk_tootaja_tootaja_seisundi_liik ON public.tootaja USING btree (tootaja_seisundi_liik_kood);
+
+
+--
+-- TOC entry 3133 (class 2606 OID 423626)
+-- Name: auto fk_auto_auto_kytuse_liik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto
+    ADD CONSTRAINT fk_auto_auto_kytuse_liik FOREIGN KEY (auto_kytuse_liik_kood) REFERENCES public.auto_kytuse_liik(auto_kytuse_liik_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3132 (class 2606 OID 423621)
+-- Name: auto fk_auto_auto_mark; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto
+    ADD CONSTRAINT fk_auto_auto_mark FOREIGN KEY (auto_mark_kood) REFERENCES public.auto_mark(auto_mark_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3134 (class 2606 OID 423631)
+-- Name: auto fk_auto_auto_seisundi_liik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto
+    ADD CONSTRAINT fk_auto_auto_seisundi_liik FOREIGN KEY (auto_seisundi_liik_kood) REFERENCES public.auto_seisundi_liik(auto_seisundi_liik_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3123 (class 2606 OID 423436)
+-- Name: auto_kategooria fk_auto_kategooria_auto_kategooria_tyyp; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria
+    ADD CONSTRAINT fk_auto_kategooria_auto_kategooria_tyyp FOREIGN KEY (auto_kategooria_tyyp_kood) REFERENCES public.auto_kategooria_tyyp(auto_kategooria_tyyp_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3136 (class 2606 OID 423651)
+-- Name: auto_kategooria_omamine fk_auto_kategooria_omamine_auto; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria_omamine
+    ADD CONSTRAINT fk_auto_kategooria_omamine_auto FOREIGN KEY (auto_kood) REFERENCES public.auto(auto_kood) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3137 (class 2606 OID 423656)
+-- Name: auto_kategooria_omamine fk_auto_kategooria_omamine_auto_kategooria; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto_kategooria_omamine
+    ADD CONSTRAINT fk_auto_kategooria_omamine_auto_kategooria FOREIGN KEY (auto_kategooria_kood) REFERENCES public.auto_kategooria(auto_kategooria_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3135 (class 2606 OID 423636)
+-- Name: auto fk_auto_tootaja; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.auto
+    ADD CONSTRAINT fk_auto_tootaja FOREIGN KEY (registreerija_id) REFERENCES public.tootaja(isik_id);
+
+
+--
+-- TOC entry 3124 (class 2606 OID 423537)
+-- Name: isik fk_isik_isiku_seisundi_liik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.isik
+    ADD CONSTRAINT fk_isik_isiku_seisundi_liik FOREIGN KEY (isiku_seisundi_liik_kood) REFERENCES public.isiku_seisundi_liik(isiku_seisundi_liik_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3125 (class 2606 OID 423542)
+-- Name: isik fk_isik_riik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.isik
+    ADD CONSTRAINT fk_isik_riik FOREIGN KEY (riik_kood) REFERENCES public.riik(riik_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3127 (class 2606 OID 423562)
+-- Name: klient fk_klient_isik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.klient
+    ADD CONSTRAINT fk_klient_isik FOREIGN KEY (isik_id) REFERENCES public.isik(isik_id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3126 (class 2606 OID 423557)
+-- Name: klient fk_klient_kliendi_seisundi_liik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.klient
+    ADD CONSTRAINT fk_klient_kliendi_seisundi_liik FOREIGN KEY (kliendi_seisundi_liik_kood) REFERENCES public.kliendi_seisundi_liik(kliendi_seisundi_liik_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3129 (class 2606 OID 423580)
+-- Name: tootaja fk_tootaja_amet; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.tootaja
+    ADD CONSTRAINT fk_tootaja_amet FOREIGN KEY (amet_kood) REFERENCES public.amet(amet_kood) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3131 (class 2606 OID 423590)
+-- Name: tootaja fk_tootaja_isik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.tootaja
+    ADD CONSTRAINT fk_tootaja_isik FOREIGN KEY (isik_id) REFERENCES public.isik(isik_id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3128 (class 2606 OID 423575)
+-- Name: tootaja fk_tootaja_tootaja; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.tootaja
+    ADD CONSTRAINT fk_tootaja_tootaja FOREIGN KEY (mentor) REFERENCES public.tootaja(isik_id) ON DELETE SET NULL;
+
+
+--
+-- TOC entry 3130 (class 2606 OID 423585)
+-- Name: tootaja fk_tootaja_tootaja_seisundi_liik; Type: FK CONSTRAINT; Schema: public; Owner: t192406
+--
+
+ALTER TABLE ONLY public.tootaja
+    ADD CONSTRAINT fk_tootaja_tootaja_seisundi_liik FOREIGN KEY (tootaja_seisundi_liik_kood) REFERENCES public.tootaja_seisundi_liik(tootaja_seisundi_liik_kood) ON UPDATE CASCADE;
+
+
+-- Completed on 2019-12-08 17:49:25
+
+--
+-- PostgreSQL database dump complete
+--
+
