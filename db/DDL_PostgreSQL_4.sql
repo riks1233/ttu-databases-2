@@ -110,7 +110,7 @@ CONSTRAINT CHK_Riik_nimetus_pole_tyhi CHECK (nimetus!~'^[[:space:]]*$')
 CREATE TABLE Amet(
 amet_kood smallint NOT NULL,
 nimetus varchar(50) NOT NULL,
-kirjeldus text,
+kirjeldus varchar(1000),
 CONSTRAINT PK_Amet PRIMARY KEY (amet_kood),
 CONSTRAINT AK_Amet_nimetus UNIQUE (nimetus),
 CONSTRAINT CHK_Amet_kirjeldus_pole_tyhi CHECK (kirjeldus!~'^[[:space:]]*$'),

@@ -246,3 +246,7 @@ ehk:
 
 KÜSIDA:
 -
+
+TO CHANGE:
+v amet zamenitj text type na 
+kirjeldus varchar(1000),
